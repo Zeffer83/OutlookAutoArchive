@@ -50,6 +50,7 @@ A PowerShell script that automatically archives emails older than a specified nu
 - `config.json` - Your configuration file (auto-created on first run)
 
 **Source Code (for developers only):**
+
 - `OutlookAutoArchive.ps1` - PowerShell script source code (for developers and advanced users)
 
 **First Run Setup:**
