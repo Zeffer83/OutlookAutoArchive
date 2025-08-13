@@ -40,6 +40,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - This is an "as-is" script created for personal use
 - No planned updates unless critical issues are found
 
+## ⚠️ Important Disclaimers
+
+### 🔒 Data Safety Warning
+
+**ALWAYS BACKUP YOUR DATA BEFORE USE!** While this script includes safety features like dry-run mode and comprehensive logging, it's your responsibility to ensure you have proper backups of your email data before using this tool.
+
+### 🛡️ No Warranty
+
+This software is provided "AS IS" without warranty of any kind. The author makes no representations or warranties about the accuracy, reliability, completeness, or suitability of this software for any purpose.
+
+### 🛡️ Limitation of Liability
+
+The author shall not be liable for any direct, indirect, incidental, special, consequential, or punitive damages, including but not limited to:
+
+- Loss of data or emails
+- Email corruption or deletion
+- System corruption
+- Any other damages arising from the use of this software
+
+### 📋 User Responsibility
+
+By using this software, you acknowledge that:
+
+- You have backed up your email data before use
+- You understand the risks involved in email operations
+- You accept full responsibility for any consequences
+- You will test the software in dry-run mode first
+- You have read and understood all disclaimers
+
 ---
 
 ## Version History
