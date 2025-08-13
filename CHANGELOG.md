@@ -5,6 +5,32 @@ All notable changes to the Outlook Auto Archive Script will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2025-08-13
+
+**Author**: Ryan Zeffiretti
+
+### Added
+
+- **Outlook Status Check**: Automatic verification that Outlook is running before execution
+- **Enhanced Batch File**: `Run_OutlookAutoArchive_WithCheck.bat` with Outlook status verification
+- **Startup Task Setup**: `Setup_OutlookStartup_Task.ps1` for creating Outlook startup tasks
+- **Improved Error Handling**: Better logging and error recovery for path issues
+- **Outlook Startup Integration**: Task that waits for Outlook to start before running archive
+
+### Changed
+
+- **Enhanced Safety**: Script now checks Outlook status before attempting operations
+- **Better Logging**: Improved error handling and logging with null checks
+- **Scheduled Task Options**: Added method to run when Outlook starts automatically
+- **Documentation**: Updated with new features and improved setup instructions
+
+### Technical Details
+
+- **Outlook Detection**: Uses `Get-Process` to verify Outlook is running
+- **Path Handling**: Improved error handling for log path processing
+- **Task Scheduler**: New PowerShell script for creating Outlook startup tasks
+- **Error Recovery**: Graceful handling of missing paths and configuration issues
+
 ## [1.2.0] - 2025-08-13
 
 **Author**: Ryan Zeffiretti
@@ -120,6 +146,7 @@ By using this software, you acknowledge that:
 
 ## Version History
 
+- **1.3.0**: Outlook status check and startup integration (2025-08-13)
 - **1.2.0**: Executable version and enhanced user experience (2025-08-13)
 - **1.1.0**: External configuration and enhanced skip rules (2025-08-13)
 - **1.0.0**: Initial release with core functionality (2025-08-13)

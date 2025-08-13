@@ -3,7 +3,7 @@
 A PowerShell script that automatically archives emails older than a specified number of days from your Outlook Inbox to organized year/month folders. The script creates a structured archive system with folders organized by year and month (e.g., `Archive\2025\2025-08`) for easy email retrieval and management.
 
 **Author**: Ryan Zeffiretti  
-**Version**: 1.2.0  
+**Version**: 1.3.0  
 **License**: MIT
 
 ## Features
@@ -16,6 +16,8 @@ A PowerShell script that automatically archives emails older than a specified nu
 - **Smart Folder Detection**: Automatically finds Archive folders in various locations
 - **Duplicate Prevention**: Handles duplicate emails intelligently
 - **Custom Skip Rules**: Built-in logic to skip specific emails (e.g., monitoring alerts)
+- **Outlook Status Check**: Automatically verifies Outlook is running before execution
+- **Enhanced Error Handling**: Improved logging and error recovery
 
 ## Safety Features
 
@@ -32,20 +34,33 @@ A PowerShell script that automatically archives emails older than a specified nu
 
 ## Installation
 
-1. Clone or download this repository
-2. Ensure Outlook is installed and configured on your system
-3. **Create the main Archive folder** (see Setup Requirements section below)
-4. The script is ready to run - no additional installation required
+1. **Download the files** from this repository
+2. **Extract to a folder** (e.g., `C:\OutlookAutoArchive\`)
+3. **Ensure Outlook is installed** and configured on your system
+4. **Create the main Archive folder** (see Setup Requirements section below)
+5. **Run the executable** to test the setup
 
 **Files included:**
 
-- `OutlookAutoArchive.exe` - Executable version (recommended for most users)
-- `Run_OutlookAutoArchive.bat` - Simple batch file to run the executable
-- `OutlookAutoArchive.ps1` - PowerShell script version
+- `OutlookAutoArchive.exe` - **Executable version (recommended for most users)**
+- `Run_OutlookAutoArchive.bat` - **Simple batch file for easy execution**
+- `Run_OutlookAutoArchive_WithCheck.bat` - **Batch file with Outlook status check**
+- `OutlookAutoArchive.ps1` - PowerShell script version (for advanced users)
+- `Setup_OutlookStartup_Task.ps1` - **Setup script for Outlook startup tasks**
 - `config.example.json` - Example configuration file
 - `config.json` - Your configuration file (auto-created on first run)
 
-**Note**: The script will automatically create a `config.json` file on first run if one doesn't exist. It will either copy from `config.example.json` if available, or create a default configuration with safe settings (DryRun = true).
+**First Run Setup:**
+
+The script will automatically create a `config.json` file on first run if one doesn't exist. It will either copy from `config.example.json` if available, or create a default configuration with safe settings (DryRun = true).
+
+**Recommended Setup Process:**
+
+1. **Double-click** `Run_OutlookAutoArchive.bat` to run the first test
+2. **Check the log files** in `%USERPROFILE%\Documents\OutlookAutoArchiveLogs\`
+3. **Review and edit** `config.json` if needed
+4. **Test again** to ensure everything works
+5. **Set up scheduled execution** (see Scheduled Execution section)
 
 ## Configuration
 
@@ -169,16 +184,33 @@ Run_OutlookAutoArchive.bat
 
 To run automatically, create a Windows Task Scheduler task:
 
-#### Using the Executable (Recommended):
+#### Method 1: Using Task Scheduler GUI (Recommended)
 
-1. Open Task Scheduler
-2. Create Basic Task
-3. Set trigger (e.g., daily at 2 AM)
-4. Action: Start a program
-5. Program: `C:\path\to\OutlookAutoArchive.exe`
-6. Arguments: (leave empty)
+1. **Open Task Scheduler** (search in Start menu)
+2. **Click "Create Basic Task"** in the right panel
+3. **Name**: `Outlook Auto Archive`
+4. **Description**: `Automatically archive old emails from Outlook`
+5. **Trigger**: Choose your schedule (e.g., Daily at 2:00 AM)
+6. **Action**: Start a program
+7. **Program/script**: `C:\path\to\OutlookAutoArchive.exe`
+8. **Arguments**: (leave empty)
+9. **Finish**: Review settings and click Finish
 
-#### Using PowerShell Script:
+#### Method 2: Using Command Line
+
+```cmd
+schtasks /create /tn "Outlook Auto Archive" /tr "C:\path\to\OutlookAutoArchive.exe" /sc daily /st 02:00 /f
+```
+
+**Parameters:**
+
+- `/tn`: Task name
+- `/tr`: Program to run (full path to executable)
+- `/sc`: Schedule (daily, weekly, etc.)
+- `/st`: Start time (24-hour format)
+- `/f`: Force creation (overwrite if exists)
+
+#### Method 3: Using PowerShell Script (Advanced Users)
 
 1. Open Task Scheduler
 2. Create Basic Task
@@ -186,6 +218,29 @@ To run automatically, create a Windows Task Scheduler task:
 4. Action: Start a program
 5. Program: `powershell.exe`
 6. Arguments: `-ExecutionPolicy Bypass -File "C:\path\to\OutlookAutoArchive.ps1"`
+
+#### Method 4: Run When Outlook Starts (Recommended)
+
+Use the provided setup script to create a task that runs when Outlook starts:
+
+```powershell
+# Run as Administrator
+.\Setup_OutlookStartup_Task.ps1
+```
+
+This creates a scheduled task that:
+
+- Starts when the system boots
+- Waits for Outlook to start
+- Runs the archive script automatically
+- Ensures Outlook is always running when the script executes
+
+#### Testing Your Scheduled Task
+
+1. **Run manually first**: Right-click the task → "Run"
+2. **Check logs**: Verify log files are created
+3. **Monitor execution**: Check task history in Task Scheduler
+4. **Adjust timing**: Ensure Outlook is running when task executes
 
 ## Logging
 
@@ -290,9 +345,18 @@ If you're using Gmail with Outlook, you can create custom labels for archiving:
 
 1. **"Access Denied" errors**: Ensure Outlook is running and you have permissions
 2. **No Archive folder found**: Create an Archive folder in your Inbox or root level (see Setup Requirements section)
-3. **Script won't run**: Check PowerShell execution policy: `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned`
+3. **Executable won't run**:
+   - Ensure you're running as administrator if needed
+   - Check Windows Defender isn't blocking the executable
+   - Try running the batch file instead
 4. **Config file issues**: The script will auto-create `config.json` if missing, but check for valid JSON syntax if errors occur
 5. **Invalid JSON**: Check that your `config.json` file has valid JSON syntax - the script will show specific error details
+6. **Scheduled task not running**:
+   - Ensure Outlook is running when the task executes
+   - Check task history in Task Scheduler
+   - Verify the executable path is correct
+   - Run the task manually first to test
+7. **No log files created**: Check if the log directory path is accessible and writable
 
 ### Debug Mode
 
@@ -360,4 +424,4 @@ If you encounter issues:
 
 ---
 
-**Note**: This script is designed for personal use and should be tested thoroughly in your environment before production use. This is version 1.2.0 and is provided "as-is" with no planned updates unless critical issues are found.
+**Note**: This script is designed for personal use and should be tested thoroughly in your environment before production use. This is version 1.3.0 and is provided "as-is" with no planned updates unless critical issues are found.

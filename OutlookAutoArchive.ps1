@@ -3,7 +3,7 @@
   Auto-archive Outlook emails with options from config.json
 #>
 
-# Version: 1.2.0
+# Version: 1.3.0
 # Author: Ryan Zeffiretti
 # Description: Auto-archive Outlook emails with options from config.json
 
@@ -57,19 +57,57 @@ catch {
 # === Apply config settings ===
 $RetentionDays = [int]$config.RetentionDays
 $DryRun = [bool]$config.DryRun
-$LogPath = (Resolve-Path ($config.LogPath -replace '%USERPROFILE%', $env:USERPROFILE))
+
+# Process log path with proper error handling
+$rawLogPath = $config.LogPath
+if ([string]::IsNullOrEmpty($rawLogPath)) {
+    $rawLogPath = "%USERPROFILE%\Documents\OutlookAutoArchiveLogs"
+    Write-Host "LogPath was empty, using default: $rawLogPath"
+}
+
+$LogPath = $rawLogPath -replace '%USERPROFILE%', $env:USERPROFILE
+if ([string]::IsNullOrEmpty($LogPath)) {
+    $LogPath = "$env:USERPROFILE\Documents\OutlookAutoArchiveLogs"
+    Write-Host "LogPath processing failed, using fallback: $LogPath"
+}
+
 $Today = Get-Date
 $CutOff = $Today.AddDays(-$RetentionDays)
 $GmailLabel = $config.GmailLabel
 $SkipRules = $config.SkipRules
 
-# === Setup logging ===
-if (-not (Test-Path $LogPath)) { New-Item -Path $LogPath -ItemType Directory | Out-Null }
-$LogFile = Join-Path $LogPath ("ArchiveLog_" + $Today.ToString("yyyy-MM-dd_HH-mm-ss") + ".txt")
+# === Check if Outlook is running ===
+try {
+    $outlookProcesses = Get-Process -Name "OUTLOOK" -ErrorAction SilentlyContinue
+    if (-not $outlookProcesses) {
+        Write-Host "Outlook is not running. Please start Outlook and try again."
+        Write-Host "The script requires Outlook to be running to access email data."
+        exit 1
+    }
+    Write-Host "Outlook is running. Proceeding with archive process..."
+}
+catch {
+    Write-Host "Could not check Outlook status. Proceeding anyway..."
+}
 
-"=== Outlook Auto-Archive Dry-Run ===" | Tee-Object -FilePath $LogFile
-"Retention: $RetentionDays days"       | Tee-Object -FilePath $LogFile -Append
-"Cutoff: $CutOff"                       | Tee-Object -FilePath $LogFile -Append
+# === Setup logging ===
+try {
+    if (-not (Test-Path $LogPath)) { 
+        New-Item -Path $LogPath -ItemType Directory -Force | Out-Null 
+        Write-Host "Created log directory: $LogPath"
+    }
+    $LogFile = Join-Path $LogPath ("ArchiveLog_" + $Today.ToString("yyyy-MM-dd_HH-mm-ss") + ".txt")
+    
+    "=== Outlook Auto-Archive Dry-Run ===" | Tee-Object -FilePath $LogFile
+    "Retention: $RetentionDays days"       | Tee-Object -FilePath $LogFile -Append
+    "Cutoff: $CutOff"                       | Tee-Object -FilePath $LogFile -Append
+}
+catch {
+    Write-Host "Error setting up logging: $_" -ForegroundColor Red
+    Write-Host "LogPath: $LogPath" -ForegroundColor Yellow
+    Write-Host "Continuing without logging..." -ForegroundColor Yellow
+    $LogFile = $null
+}
 
 function Get-ArchiveFolder {
     param($store)
@@ -106,8 +144,11 @@ foreach ($store in $namespace.Folders) {
     try {
         $archiveRoot = Get-ArchiveFolder $store
         if (-not $archiveRoot) {
-            "[$($store.Name)] No 'Archive' folder found, skipping." |
-            Tee-Object -FilePath $LogFile -Append
+            $logMessage = "[$($store.Name)] No 'Archive' folder found, skipping."
+            Write-Host $logMessage
+            if ($LogFile) {
+                $logMessage | Tee-Object -FilePath $LogFile -Append
+            }
             continue
         }
 
@@ -132,8 +173,11 @@ foreach ($store in $namespace.Folders) {
         $inbox = $null
         try { $inbox = $store.Folders.Item("Inbox") } catch {}
         if (-not $inbox) {
-            "[$($store.Name)] No Inbox folder, skipping message scan." |
-            Tee-Object -FilePath $LogFile -Append
+            $logMessage = "[$($store.Name)] No Inbox folder, skipping message scan."
+            Write-Host $logMessage
+            if ($LogFile) {
+                $logMessage | Tee-Object -FilePath $LogFile -Append
+            }
             continue
         }
 
@@ -143,14 +187,20 @@ foreach ($store in $namespace.Folders) {
             $rawItems = @($inbox.Items | Where-Object { $_.Class -eq 43 })
         }
         catch {
-            "[$($store.Name)] Could not retrieve mail items: $_" |
-            Tee-Object -FilePath $LogFile -Append
+            $logMessage = "[$($store.Name)] Could not retrieve mail items: $_"
+            Write-Host $logMessage
+            if ($LogFile) {
+                $logMessage | Tee-Object -FilePath $LogFile -Append
+            }
             continue
         }
 
         if ($rawItems.Count -eq 0) {
-            "[$($store.Name)] No messages found to process." |
-            Tee-Object -FilePath $LogFile -Append
+            $logMessage = "[$($store.Name)] No messages found to process."
+            Write-Host $logMessage
+            if ($LogFile) {
+                $logMessage | Tee-Object -FilePath $LogFile -Append
+            }
             continue
         }
 
