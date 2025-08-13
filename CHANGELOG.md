@@ -5,7 +5,7 @@ All notable changes to the Outlook Auto Archive Script will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.0.0] - 2024-12-19
 
 ### Added
 - Initial release of Outlook Auto Archive Script
@@ -34,20 +34,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Error handling for missing folders and permissions
 - Support for multiple Outlook accounts/stores
 
-## [1.0.0] - 2024-12-19
-
-### Added
-- Initial release
-- Core archiving functionality
-- Dry-run mode
-- Logging system
-- Multi-account support
-- Archive folder detection
-- Duplicate prevention
-- Custom skip rules
+### Notes
+- This is an "as-is" script created for personal use
+- No planned updates unless critical issues are found
 
 ---
 
 ## Version History
 
-- **1.0.0**: Initial release with core functionality
+- **1.0.0**: Initial release with core functionality (2024-12-19)

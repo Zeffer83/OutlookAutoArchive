@@ -145,11 +145,12 @@ Enable verbose logging by adding `-Verbose` to PowerShell commands or modifying 
 
 ## Contributing
 
+This is an "as-is" script created for personal use. While contributions are welcome, please note that this project is not actively maintained beyond personal needs. If you find issues or want to add features, feel free to fork and modify for your own use.
+
+If you do find critical bugs, you can:
 1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
+2. Fix the issue
+3. Submit a pull request (though response may be limited)
 
 ## License
 
@@ -158,6 +159,8 @@ This project is open source and available under the [MIT License](LICENSE).
 ## Disclaimer
 
 This script modifies your Outlook email structure. Always test in dry-run mode first and ensure you have backups of important emails before running in live mode.
+
+**Note**: This is an "as-is" script created for personal use. Use at your own risk and test thoroughly in your environment.
 
 ## Support
 
@@ -169,4 +172,4 @@ If you encounter issues:
 
 ---
 
-**Note**: This script is designed for personal use and should be tested thoroughly in your environment before production use.
+**Note**: This script is designed for personal use and should be tested thoroughly in your environment before production use. This is version 1.0.0 and is provided "as-is" with no planned updates unless critical issues are found.

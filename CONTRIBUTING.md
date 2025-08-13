@@ -1,6 +1,6 @@
 # Contributing to Outlook Auto Archive Script
 
-Thank you for your interest in contributing to the Outlook Auto Archive Script! This document provides guidelines and information for contributors.
+Thank you for your interest in the Outlook Auto Archive Script! This document provides guidelines for contributors, though please note this is an "as-is" script with limited maintenance.
 
 ## How to Contribute
 
@@ -76,8 +76,8 @@ Before submitting a pull request:
 
 ### Review Process
 
-- All PRs will be reviewed
-- Maintainers may request changes
+- PRs may be reviewed when time permits
+- Response times may vary due to limited maintenance
 - Once approved, changes will be merged
 - Contributors will be credited in the project
 
@@ -112,4 +112,4 @@ If you have questions about contributing:
 2. Search existing issues for similar questions
 3. Create a new issue with the "question" label
 
-Thank you for contributing to making this project better!
+Thank you for your interest in this project! While this is primarily for personal use, community contributions are appreciated.

@@ -15,7 +15,7 @@ We take security vulnerabilities seriously. If you discover a security vulnerabi
 ### How to Report
 
 1. **DO NOT** create a public GitHub issue for security vulnerabilities
-2. Email your findings to: [your-email@example.com]
+2. Email your findings to: rzeffiretti@gmail.com
 3. Include detailed information about the vulnerability
 4. Provide steps to reproduce the issue
 5. Suggest potential fixes if possible
@@ -70,8 +70,8 @@ The script includes several security features:
 
 ## Contact
 
-For security-related issues, please contact: [your-email@example.com]
+For security-related issues, please contact: rzeffiretti@gmail.com
 
 ---
 
-**Note**: Replace `[your-email@example.com]` with your actual email address before publishing.
+**Note**: This is an "as-is" script with limited maintenance. Response times may vary.
