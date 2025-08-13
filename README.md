@@ -35,7 +35,8 @@ A PowerShell script that automatically archives emails older than a specified nu
 1. Clone or download this repository
 2. Ensure Outlook is installed and configured on your system
 3. Copy `config.example.json` to `config.json` and customize the settings
-4. The script is ready to run - no additional installation required
+4. **Create the main Archive folder** (see Setup Requirements section below)
+5. The script is ready to run - no additional installation required
 
 ## Configuration
 
@@ -71,10 +72,31 @@ The script uses a `config.json` file for configuration. Edit this file to custom
    - `Inbox\Archive`
    - Root-level `Archive`
    - Custom Gmail labels (configured via `GmailLabel` in config.json)
-3. **Creates Folder Structure**: Automatically creates year/month folders
+3. **Creates Folder Structure**: Automatically creates year/month folders (you only need to create the main Archive folder)
 4. **Scans Inbox**: Processes all emails in the Inbox
 5. **Moves Old Emails**: Moves emails older than retention period to appropriate archive folder
 6. **Logs Everything**: Records all operations to timestamped log files
+
+## Setup Requirements
+
+**You need to create the main Archive folder** - the script will handle the rest automatically:
+
+### Option 1: Create Archive folder in Inbox
+1. Right-click on your Inbox
+2. Select "New Folder"
+3. Name it "Archive"
+
+### Option 2: Create Archive folder at root level
+1. Right-click on your email account name
+2. Select "New Folder"
+3. Name it "Archive"
+
+### Option 3: Use Gmail labels (see Gmail setup section below)
+Configure a Gmail label in your `config.json` file.
+
+**The script will automatically create**:
+- Year folders (e.g., "2024", "2023")
+- Month folders (e.g., "2024-12", "2024-11")
 
 ## Archive Structure
 
@@ -218,7 +240,7 @@ If you're using Gmail with Outlook, you can create custom labels for archiving:
 ### Common Issues
 
 1. **"Access Denied" errors**: Ensure Outlook is running and you have permissions
-2. **No Archive folder found**: Create an Archive folder in your Inbox or root level
+2. **No Archive folder found**: Create an Archive folder in your Inbox or root level (see Setup Requirements section)
 3. **Script won't run**: Check PowerShell execution policy: `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned`
 4. **Config file not found**: Ensure `config.json` exists in the same directory as the script
 5. **Invalid JSON**: Check that your `config.json` file has valid JSON syntax
