@@ -5,6 +5,36 @@ All notable changes to the Outlook Auto Archive Script will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.0] - 2025-08-13
+
+**Author**: Ryan Zeffiretti
+
+### Added
+
+- **Integrated Outlook Status Check**: Enhanced Outlook status checking with better user feedback and guidance
+- **Convenience Batch File Generation**: Option to create convenience .bat files during first-run setup
+- **Single-File Download Experience**: Simplified download with only essential files included
+- **Interactive Batch File Creation**: Users can choose which convenience scripts to create
+
+### Changed
+
+- **Simplified File Structure**: Removed unnecessary .bat files from distribution
+- **Enhanced User Experience**: Better error messages and user guidance for Outlook status issues
+- **Streamlined Setup Process**: All functionality now integrated into the main executable
+- **Cleaner Repository**: Reduced file clutter and improved organization
+
+### Removed
+
+- **Standalone Batch Files**: Removed `Run_OutlookAutoArchive.bat`, `Run_OutlookAutoArchive_WithCheck.bat`, and `Setup_Archive_Folders.bat` from distribution
+- **File Clutter**: Eliminated unnecessary wrapper files
+
+### Technical Details
+
+- **Integrated Functionality**: All batch file functionality now integrated into main executable
+- **Dynamic File Generation**: Convenience .bat files generated on-demand during first run
+- **Improved Error Handling**: Better user feedback when Outlook is not running
+- **Simplified Distribution**: Single executable download with optional convenience files
+
 ## [1.8.0] - 2025-08-13
 
 **Author**: Ryan Zeffiretti

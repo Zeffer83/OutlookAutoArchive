@@ -3,7 +3,7 @@
   Auto-archive Outlook emails with options from config.json
 #>
 
-# Version: 1.8.0
+# Version: 1.9.0
 # Author: Ryan Zeffiretti
 # Description: Auto-archive Outlook emails with options from config.json
 
@@ -618,10 +618,104 @@ if ($config.OnFirstRun -eq $true) {
         Write-Host "- It may take a few minutes for labels to sync to Outlook" -ForegroundColor White
     }
     
-    Write-Host ""
-    Write-Host "=== Continuing with archive process... ===" -ForegroundColor Cyan
-    Write-Host ""
-}
+         Write-Host ""
+     Write-Host "=== Continuing with archive process... ===" -ForegroundColor Cyan
+     Write-Host ""
+     
+     # Ask if user wants convenience .bat files created
+     Write-Host "Would you like to create convenience batch files for easy execution?" -ForegroundColor Cyan
+     Write-Host "These will create simple .bat files that you can double-click to run the archive script." -ForegroundColor White
+     Write-Host ""
+     Write-Host "Options:" -ForegroundColor Yellow
+     Write-Host "1. Create simple run script (Run_OutlookAutoArchive.bat)" -ForegroundColor White
+     Write-Host "2. Create run script with Outlook check (Run_OutlookAutoArchive_WithCheck.bat)" -ForegroundColor White
+     Write-Host "3. Create both convenience scripts" -ForegroundColor White
+     Write-Host "4. Skip creating batch files" -ForegroundColor White
+     Write-Host ""
+     
+     do {
+         $batchChoice = Read-Host "Enter choice (1-4)"
+         if ($batchChoice -match '^[1-4]$') {
+             break
+         }
+         Write-Host "Please enter 1, 2, 3, or 4." -ForegroundColor Red
+     } while ($true)
+     
+     if ($batchChoice -in @('1', '2', '3')) {
+         Write-Host ""
+         Write-Host "Creating convenience batch files..." -ForegroundColor Cyan
+         
+         # Create simple run script
+         if ($batchChoice -in @('1', '3')) {
+             $simpleBatContent = @"
+@echo off
+echo Starting Outlook Auto Archive...
+echo.
+echo This will run the archive script using your config.json settings.
+echo Make sure Outlook is running and you have created an Archive folder.
+echo.
+pause
+echo.
+OutlookAutoArchive.exe
+echo.
+echo Script completed. Check the log files for details.
+pause
+"@
+             $simpleBatPath = Join-Path $scriptDir "Run_OutlookAutoArchive.bat"
+             $simpleBatContent | Out-File -FilePath $simpleBatPath -Encoding ASCII
+             Write-Host "✅ Created Run_OutlookAutoArchive.bat" -ForegroundColor Green
+         }
+         
+         # Create run script with Outlook check
+         if ($batchChoice -in @('2', '3')) {
+             $checkBatContent = @"
+@echo off
+echo ========================================
+echo    Outlook Auto Archive - With Check
+echo ========================================
+echo.
+
+echo Checking if Outlook is running...
+tasklist /FI "IMAGENAME eq OUTLOOK.EXE" 2>NUL | find /I /N "OUTLOOK.EXE">NUL
+if "%ERRORLEVEL%"=="0" (
+    echo [OK] Outlook is running
+    echo.
+    echo Starting archive process...
+    echo.
+    OutlookAutoArchive.exe
+    echo.
+    echo Script completed. Check the log files for details.
+) else (
+    echo [ERROR] Outlook is not running!
+    echo.
+    echo The archive script requires Outlook to be running.
+    echo Please start Outlook and try again.
+    echo.
+    echo You can:
+    echo 1. Start Outlook manually
+    echo 2. Run this script again
+    echo 3. Set up a scheduled task that runs when Outlook starts
+    echo.
+)
+
+echo.
+echo Press any key to exit...
+pause >nul
+"@
+             $checkBatPath = Join-Path $scriptDir "Run_OutlookAutoArchive_WithCheck.bat"
+             $checkBatContent | Out-File -FilePath $checkBatPath -Encoding ASCII
+             Write-Host "✅ Created Run_OutlookAutoArchive_WithCheck.bat" -ForegroundColor Green
+         }
+         
+         Write-Host ""
+         Write-Host "Convenience batch files created successfully!" -ForegroundColor Green
+         Write-Host "You can now double-click these .bat files to run the archive script easily." -ForegroundColor White
+     }
+     else {
+         Write-Host ""
+         Write-Host "Skipped creating batch files. You can run OutlookAutoArchive.exe directly." -ForegroundColor Yellow
+     }
+ }
 
 # === Apply config settings ===
 $RetentionDays = [int]$config.RetentionDays
@@ -654,14 +748,23 @@ $SkipRules = $config.SkipRules
 try {
     $outlookProcesses = Get-Process -Name "OUTLOOK" -ErrorAction SilentlyContinue
     if (-not $outlookProcesses) {
-        Write-Host "Outlook is not running. Please start Outlook and try again."
-        Write-Host "The script requires Outlook to be running to access email data."
+        Write-Host "❌ Outlook is not running!" -ForegroundColor Red
+        Write-Host ""
+        Write-Host "The archive script requires Outlook to be running to access email data." -ForegroundColor Yellow
+        Write-Host ""
+        Write-Host "Please:" -ForegroundColor Cyan
+        Write-Host "1. Start Outlook manually" -ForegroundColor White
+        Write-Host "2. Run this script again" -ForegroundColor White
+        Write-Host "3. Set up a scheduled task that runs when Outlook starts" -ForegroundColor White
+        Write-Host ""
+        Write-Host "Press any key to exit..." -ForegroundColor Gray
+        $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
         exit 1
     }
-    Write-Host "Outlook is running. Proceeding with archive process..."
+    Write-Host "✅ Outlook is running. Proceeding with archive process..." -ForegroundColor Green
 }
 catch {
-    Write-Host "Could not check Outlook status. Proceeding anyway..."
+    Write-Host "⚠️  Could not check Outlook status. Proceeding anyway..." -ForegroundColor Yellow
 }
 
 # === Setup logging ===

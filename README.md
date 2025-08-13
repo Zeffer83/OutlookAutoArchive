@@ -3,7 +3,7 @@
 A PowerShell script that automatically archives emails older than a specified number of days from your Outlook Inbox to organized year/month folders. The script creates a structured archive system with folders organized by year and month (e.g., `Archive\2025\2025-08`) for easy email retrieval and management.
 
 **Author**: Ryan Zeffiretti  
-**Version**: 1.8.0  
+**Version**: 1.9.0  
 **License**: MIT
 
 ## Features
@@ -42,10 +42,7 @@ A PowerShell script that automatically archives emails older than a specified nu
 
 **Files included:**
 
-- `OutlookAutoArchive.exe` - **Executable version (RECOMMENDED for all users) - FULLY TESTED AND WORKING**
-- `Run_OutlookAutoArchive.bat` - **Simple batch file for easy execution**
-- `Run_OutlookAutoArchive_WithCheck.bat` - **Batch file with Outlook status check**
-- `Setup_Archive_Folders.bat` - **Easy setup for archive folders and labels (RECOMMENDED FIRST STEP)**
+- `OutlookAutoArchive.exe` - **Single executable (RECOMMENDED for all users) - FULLY TESTED AND WORKING**
 - `Setup_OutlookStartup_Task.ps1` - **Setup script for Outlook startup tasks**
 - `config.example.json` - Example configuration file
 - `config.json` - Your configuration file (auto-created on first run)
@@ -60,8 +57,8 @@ The script will automatically create a `config.json` file on first run if one do
 
 **Recommended Setup Process:**
 
-1. **Double-click** `Setup_Archive_Folders.bat` to create archive folders and labels (RECOMMENDED FIRST STEP)
-2. **Double-click** `Run_OutlookAutoArchive.bat` to run the first test
+1. **Double-click** `OutlookAutoArchive.exe` to start the first-run setup
+2. **Follow the guided setup** to configure installation location, archive folders, and scheduling
 3. **Check the log files** in `%USERPROFILE%\Documents\OutlookAutoArchiveLogs\`
 4. **Review and edit** `config.json` if needed
 5. **Test again** to ensure everything works
@@ -102,7 +99,7 @@ This script has been thoroughly tested and is working perfectly with all email a
 
 **Test Results**: Successfully processed 1,000+ emails across multiple accounts with proper archive folder detection and skip rule functionality.
 
-**New in v1.8.0**: Interactive installation location setup during first-run configuration, allowing users to choose where to install the application (Program Files, User Documents, custom location, or current location).
+**New in v1.9.0**: Simplified single-file download experience with integrated functionality. The executable now includes Outlook status checking and can generate convenience batch files on first run.
 
 ## How It Works
 
@@ -176,13 +173,7 @@ Archive/
 
 The easiest way to run the script is using the provided executable:
 
-**Method A: Double-click the batch file**
-
-```
-Run_OutlookAutoArchive.bat
-```
-
-**Method B: Run the executable directly**
+**Method A: Run the executable directly**
 
 ```powershell
 # Run the executable (it will use config.json automatically)
@@ -195,7 +186,8 @@ Run_OutlookAutoArchive.bat
 - Double-click to run
 - Works with Windows Task Scheduler
 - No need to open PowerShell
-- User-friendly batch file included
+- Integrated Outlook status checking
+- Can generate convenience batch files on first run
 
 ### Option 2: Using PowerShell Script (Developers Only)
 
@@ -455,4 +447,4 @@ If you encounter issues:
 
 ---
 
-**Note**: This script is designed for personal use and should be tested thoroughly in your environment before production use. This is version 1.8.0 and is provided "as-is" with no planned updates unless critical issues are found.
+**Note**: This script is designed for personal use and should be tested thoroughly in your environment before production use. This is version 1.9.0 and is provided "as-is" with no planned updates unless critical issues are found.

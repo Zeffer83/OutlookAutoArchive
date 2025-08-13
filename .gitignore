@@ -20,6 +20,10 @@ config.json
 # Generated PowerShell scripts
 WaitForOutlook.ps1
 
+# Generated convenience batch files (created on first run)
+Run_OutlookAutoArchive.bat
+Run_OutlookAutoArchive_WithCheck.bat
+
 # Release packages
 OutlookAutoArchive-v*.zip
 
