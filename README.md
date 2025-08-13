@@ -1,6 +1,6 @@
 # Outlook Auto Archive Script
 
-A PowerShell script that automatically archives emails older than a specified number of days from your Outlook Inbox to organized year/month folders.
+A PowerShell script that automatically archives emails older than a specified number of days from your Outlook Inbox to organized year/month folders. The script creates a structured archive system with folders organized by year and month (e.g., `Archive\2024\2024-12`) for easy email retrieval and management.
 
 **Author**: Ryan Zeffiretti  
 **Version**: 1.1.0  
@@ -16,6 +16,13 @@ A PowerShell script that automatically archives emails older than a specified nu
 - **Smart Folder Detection**: Automatically finds Archive folders in various locations
 - **Duplicate Prevention**: Handles duplicate emails intelligently
 - **Custom Skip Rules**: Built-in logic to skip specific emails (e.g., monitoring alerts)
+
+## Safety Features
+
+- **Dry-Run Mode**: Test without making changes
+- **Duplicate Prevention**: Avoids moving duplicate emails
+- **Error Handling**: Graceful handling of missing folders or permissions
+- **Backup Logging**: All operations are logged before execution
 
 ## Prerequisites
 
@@ -57,6 +64,33 @@ The script uses a `config.json` file for configuration. Edit this file to custom
 - **`GmailLabel`**: Custom Gmail label name for archive folder (optional)
 - **`SkipRules`**: Array of rules to skip specific emails by mailbox and subject patterns
 
+## How It Works
+
+1. **Connects to Outlook**: Uses COM Interop to access Outlook
+2. **Finds Archive Folder**: Searches for Archive folder in multiple locations:
+   - `Inbox\Archive`
+   - Root-level `Archive`
+   - Custom Gmail labels (configured via `GmailLabel` in config.json)
+3. **Creates Folder Structure**: Automatically creates year/month folders
+4. **Scans Inbox**: Processes all emails in the Inbox
+5. **Moves Old Emails**: Moves emails older than retention period to appropriate archive folder
+6. **Logs Everything**: Records all operations to timestamped log files
+
+## Archive Structure
+
+The script creates an organized folder structure:
+
+```
+Archive/
+├── 2024/
+│   ├── 2024-01/
+│   ├── 2024-02/
+│   └── ...
+├── 2023/
+│   ├── 2023-12/
+│   └── ...
+```
+
 ## Usage
 
 ### Basic Usage
@@ -82,33 +116,6 @@ To run automatically, create a Windows Task Scheduler task:
 5. Program: `powershell.exe`
 6. Arguments: `-ExecutionPolicy Bypass -File "C:\path\to\OutlookAutoArchive.ps1"`
 
-## How It Works
-
-1. **Connects to Outlook**: Uses COM Interop to access Outlook
-2. **Finds Archive Folder**: Searches for Archive folder in multiple locations:
-   - `Inbox\Archive`
-   - Root-level `Archive`
-   - Gmail-style `OutlookArchive`
-3. **Creates Folder Structure**: Automatically creates year/month folders
-4. **Scans Inbox**: Processes all emails in the Inbox
-5. **Moves Old Emails**: Moves emails older than retention period to appropriate archive folder
-6. **Logs Everything**: Records all operations to timestamped log files
-
-## Archive Structure
-
-The script creates an organized folder structure:
-
-```
-Archive/
-├── 2024/
-│   ├── 2024-01/
-│   ├── 2024-02/
-│   └── ...
-├── 2023/
-│   ├── 2023-12/
-│   └── ...
-```
-
 ## Logging
 
 Logs are stored in: `%USERPROFILE%\Documents\OutlookAutoArchiveLogs\`
@@ -122,13 +129,6 @@ Log entries include:
 - Email movement details
 - Errors and warnings
 - Completion timestamp
-
-## Safety Features
-
-- **Dry-Run Mode**: Test without making changes
-- **Duplicate Prevention**: Avoids moving duplicate emails
-- **Error Handling**: Graceful handling of missing folders or permissions
-- **Backup Logging**: All operations are logged before execution
 
 ## Customization
 
@@ -150,7 +150,7 @@ To skip specific emails, add rules to the `config.json` file:
 
 The script will automatically skip emails that match the specified mailbox and subject patterns.
 
-### Custom Archive Locations
+### Archive Folder Detection
 
 The script automatically detects archive folders in multiple locations:
 
@@ -182,6 +182,7 @@ If you're using Gmail with Outlook, you can create custom labels for archiving:
    - Click "Create"
 
 3. **Show Label in IMAP** (Required for Outlook sync):
+
    - In the "Labels" tab, find your newly created label
    - Check the box under "Show in IMAP" for your label
    - This ensures the label appears in Outlook
