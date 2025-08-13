@@ -5,6 +5,35 @@ All notable changes to the Outlook Auto Archive Script will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2025-08-13
+
+**Author**: Ryan Zeffiretti
+
+### Added
+
+- **Ultimate Single-File Experience**: Complete integration of all functionality into the main executable
+- **Streamlined Distribution**: Removed all standalone setup scripts for cleaner downloads
+- **Simplified User Experience**: Everything now handled through the main executable's first-run setup
+
+### Changed
+
+- **Major Version Bump**: Version 2.0.0 reflects the complete integration and cleanup
+- **Documentation Updates**: Removed all references to standalone setup scripts
+- **Project Structure**: Cleaner, more focused project with fewer files
+
+### Removed
+
+- **Setup_Archive_Folders.ps1**: Archive folder creation now fully integrated into main executable
+- **Setup_OutlookStartup_Task.ps1**: Scheduled task setup now fully integrated into main executable
+- **Standalone Setup Scripts**: All setup functionality consolidated into the main executable
+
+### Technical Details
+
+- **Complete Integration**: All setup functionality now part of the main executable's first-run process
+- **Simplified Distribution**: Users only need to download the main executable and documentation
+- **Cleaner Repository**: Reduced file count and improved project organization
+- **Better User Experience**: Single point of entry for all functionality
+
 ## [1.9.0] - 2025-08-13
 
 **Author**: Ryan Zeffiretti

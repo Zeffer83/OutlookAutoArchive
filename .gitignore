@@ -24,6 +24,10 @@ WaitForOutlook.ps1
 Run_OutlookAutoArchive.bat
 Run_OutlookAutoArchive_WithCheck.bat
 
+# Removed setup scripts (functionality integrated into main executable)
+# Setup_Archive_Folders.ps1
+# Setup_OutlookStartup_Task.ps1
+
 # Release packages
 OutlookAutoArchive-v*.zip
 

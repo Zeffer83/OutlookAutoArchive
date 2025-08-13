@@ -3,7 +3,7 @@
 A PowerShell script that automatically archives emails older than a specified number of days from your Outlook Inbox to organized year/month folders. The script creates a structured archive system with folders organized by year and month (e.g., `Archive\2025\2025-08`) for easy email retrieval and management.
 
 **Author**: Ryan Zeffiretti  
-**Version**: 1.9.0  
+**Version**: 2.0.0  
 **License**: MIT
 
 ## Features
@@ -43,7 +43,6 @@ A PowerShell script that automatically archives emails older than a specified nu
 **Files included:**
 
 - `OutlookAutoArchive.exe` - **Single executable (RECOMMENDED for all users) - FULLY TESTED AND WORKING**
-- `Setup_OutlookStartup_Task.ps1` - **Setup script for Outlook startup tasks**
 - `config.example.json` - Example configuration file
 - `config.json` - Your configuration file (auto-created on first run)
 
@@ -99,7 +98,7 @@ This script has been thoroughly tested and is working perfectly with all email a
 
 **Test Results**: Successfully processed 1,000+ emails across multiple accounts with proper archive folder detection and skip rule functionality.
 
-**New in v1.9.0**: Simplified single-file download experience with integrated functionality. The executable now includes Outlook status checking and can generate convenience batch files on first run.
+**New in v2.0.0**: Ultimate single-file experience! Removed all standalone setup scripts - everything is now integrated into the main executable with a complete guided first-run setup.
 
 ## How It Works
 
@@ -119,8 +118,8 @@ This script has been thoroughly tested and is working perfectly with all email a
 
 ### Option 1: Automatic Setup (RECOMMENDED)
 
-1. **Double-click** `Setup_Archive_Folders.bat`
-2. **Follow the prompts** to create archive folders and labels
+1. **Double-click** `OutlookAutoArchive.exe`
+2. **Follow the guided first-run setup** to create archive folders and labels
 3. **The script will automatically**:
    - Detect all your email accounts
    - Create Gmail labels for Gmail accounts
@@ -244,12 +243,7 @@ schtasks /create /tn "Outlook Auto Archive" /tr "C:\path\to\OutlookAutoArchive.e
 
 #### Method 4: Run When Outlook Starts (Recommended)
 
-Use the provided setup script to create a task that runs when Outlook starts:
-
-```powershell
-# Run as Administrator
-.\Setup_OutlookStartup_Task.ps1
-```
+The first-run setup includes an option to create a task that runs when Outlook starts. Simply choose "When Outlook starts" during the interactive setup process.
 
 This creates a scheduled task that:
 
@@ -447,4 +441,4 @@ If you encounter issues:
 
 ---
 
-**Note**: This script is designed for personal use and should be tested thoroughly in your environment before production use. This is version 1.9.0 and is provided "as-is" with no planned updates unless critical issues are found.
+**Note**: This script is designed for personal use and should be tested thoroughly in your environment before production use. This is version 2.0.0 and is provided "as-is" with no planned updates unless critical issues are found.
