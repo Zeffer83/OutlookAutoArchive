@@ -36,19 +36,19 @@ The script uses a `config.json` file for configuration. Edit this file to custom
 
 ```json
 {
-    "RetentionDays": 14,
-    "DryRun": true,
-    "LogPath": "%USERPROFILE%\\Documents\\OutlookAutoArchiveLogs",
-    "GmailLabel": "OutlookArchive",
-    "SkipRules": [
-        {
-            "Mailbox": "Surinder (Shared)",
-            "Subjects": [
-                "Medite offline monitoring",
-                "Medite Offline Monitoring Service"
-            ]
-        }
-    ]
+  "RetentionDays": 14,
+  "DryRun": true,
+  "LogPath": "%USERPROFILE%\\Documents\\OutlookAutoArchiveLogs",
+  "GmailLabel": "OutlookArchive",
+  "SkipRules": [
+    {
+      "Mailbox": "Surinder (Shared)",
+      "Subjects": [
+        "Medite offline monitoring",
+        "Medite Offline Monitoring Service"
+      ]
+    }
+  ]
 }
 ```
 
@@ -156,6 +156,7 @@ The script will automatically skip emails that match the specified mailbox and s
 ### Custom Archive Locations
 
 The script automatically detects archive folders in multiple locations:
+
 - `Inbox\Archive`
 - Root-level `Archive`
 - Custom Gmail labels (configured via `GmailLabel` in config.json)
