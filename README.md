@@ -165,20 +165,28 @@ To add support for additional locations, modify the `Get-ArchiveFolder` function
 If you're using Gmail with Outlook, you can create custom labels for archiving:
 
 #### In Gmail:
-1. **Create a Label**:
+
+1. **Enable IMAP** (Required for Outlook sync):
    - Open Gmail in your web browser
    - Click the gear icon (Settings) → "See all settings"
-   - Go to the "Labels" tab
+   - Go to the "Forwarding and POP/IMAP" tab
+   - In the "IMAP access" section, select "Enable IMAP"
+   - Click "Save Changes"
+
+2. **Create a Label**:
+   - Go to the "Labels" tab in Gmail settings
    - Click "Create new label"
    - Name it (e.g., "OutlookArchive" or your preferred name)
    - Click "Create"
 
-2. **Label Structure** (Optional):
+3. **Label Structure** (Optional):
    - You can create nested labels like "OutlookArchive/2024/2024-12"
    - The script will automatically create year/month sub-labels
 
 #### In Outlook:
+
 1. **Sync the Label**:
+
    - The Gmail label should automatically appear in Outlook
    - It may take a few minutes to sync
    - Look for the label in your folder list
@@ -188,9 +196,12 @@ If you're using Gmail with Outlook, you can create custom labels for archiving:
    - Example: `"GmailLabel": "OutlookArchive"`
 
 #### Troubleshooting Gmail Labels:
+
 - **Label not appearing**: Try refreshing Outlook or restarting it
 - **Sync issues**: Check your Gmail IMAP settings in Outlook
 - **Permission errors**: Ensure you have full access to your Gmail account
+- **IMAP not enabled**: Make sure IMAP is enabled in Gmail settings (Forwarding and POP/IMAP tab)
+- **Labels not syncing**: Wait a few minutes for Gmail to sync labels to Outlook, or restart Outlook
 
 ## Troubleshooting
 
