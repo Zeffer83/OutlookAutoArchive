@@ -5,6 +5,34 @@ All notable changes to the Outlook Auto Archive Script will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.0] - 2025-08-13
+
+**Author**: Ryan Zeffiretti
+
+### Added
+
+- **Interactive Scheduled Task Setup**: New guided scheduling setup during first-run configuration
+- **Multiple Scheduling Options**: Users can choose between daily time-based scheduling, Outlook startup integration, or manual setup
+- **Automatic Task Creation**: Automatically creates Windows Task Scheduler tasks based on user preferences
+- **Time Input Validation**: Validates user time input in 24-hour format for daily scheduling
+- **Fallback Mechanisms**: Graceful fallback to PowerShell script if executable is not found
+- **Error Handling**: Comprehensive error handling for task creation with helpful fallback instructions
+
+### Changed
+
+- **Enhanced First-Run Experience**: First-run setup now includes complete scheduling configuration
+- **User Experience**: Streamlined setup process with guided scheduling options
+- **Task Scheduler Integration**: Seamless integration with Windows Task Scheduler
+- **Documentation**: Updated to reflect new scheduling capabilities
+
+### Technical Details
+
+- **Daily Scheduling**: Creates daily tasks at user-specified times using schtasks command
+- **Startup Integration**: Option to use existing Setup_OutlookStartup_Task.ps1 or create basic startup task
+- **Path Detection**: Intelligent detection of executable vs PowerShell script paths
+- **Task Naming**: Consistent task naming conventions for easy identification
+- **Validation**: Time format validation and user input sanitization
+
 ## [1.6.0] - 2025-08-13
 
 **Author**: Ryan Zeffiretti

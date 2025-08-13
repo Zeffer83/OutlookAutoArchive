@@ -3,7 +3,7 @@
   Auto-archive Outlook emails with options from config.json
 #>
 
-# Version: 1.6.0
+# Version: 1.7.0
 # Author: Ryan Zeffiretti
 # Description: Auto-archive Outlook emails with options from config.json
 
@@ -342,14 +342,145 @@ if ($config.OnFirstRun -eq $true) {
         Write-Host "❌ Failed to save configuration: $_" -ForegroundColor Red
     }
     
-    Write-Host ""
-    Write-Host "🎉 First run setup completed!" -ForegroundColor Green
-    Write-Host ""
-    Write-Host "Next steps:" -ForegroundColor Cyan
-    Write-Host "1. The script will now run in dry-run mode to test everything" -ForegroundColor White
-    Write-Host "2. Check the log files to verify everything works" -ForegroundColor White
-    Write-Host "3. When ready, edit config.json and set 'DryRun': false" -ForegroundColor White
-    Write-Host "4. Set up scheduled execution if desired" -ForegroundColor White
+         Write-Host ""
+     Write-Host "🎉 First run setup completed!" -ForegroundColor Green
+     Write-Host ""
+     
+     # Ask about scheduled task setup
+     Write-Host "Would you like to set up automatic scheduling now?" -ForegroundColor Cyan
+     Write-Host "This will create a Windows Task Scheduler task to run the archive script automatically." -ForegroundColor White
+     Write-Host ""
+     Write-Host "Scheduling options:" -ForegroundColor Yellow
+     Write-Host "1. Daily at a specific time (e.g., 2:00 AM)" -ForegroundColor White
+     Write-Host "2. When Outlook starts (recommended)" -ForegroundColor White
+     Write-Host "3. Skip scheduling for now" -ForegroundColor White
+     Write-Host ""
+     
+     do {
+         $scheduleChoice = Read-Host "Enter choice (1-3)"
+         if ($scheduleChoice -match '^[1-3]$') {
+             break
+         }
+         Write-Host "Please enter 1, 2, or 3." -ForegroundColor Red
+     } while ($true)
+     
+     if ($scheduleChoice -eq '1') {
+         Write-Host ""
+         Write-Host "Setting up daily scheduled task..." -ForegroundColor Cyan
+         
+         # Get time from user
+         Write-Host "What time would you like the script to run daily?" -ForegroundColor Cyan
+         Write-Host "Recommended: 2:00 AM (when you're not using Outlook)" -ForegroundColor Gray
+         do {
+             $timeInput = Read-Host "Enter time in 24-hour format (e.g., 02:00 for 2:00 AM)"
+             if ($timeInput -match '^([01]?[0-9]|2[0-3]):[0-5][0-9]$') {
+                 $scheduledTime = $timeInput
+                 break
+             }
+             Write-Host "Please enter a valid time in 24-hour format (HH:MM)." -ForegroundColor Red
+         } while ($true)
+         
+         # Create daily scheduled task
+         try {
+             $taskName = "Outlook Auto Archive"
+             $taskDescription = "Automatically archive old emails from Outlook"
+             $scriptPath = if ($PSScriptRoot) { Join-Path $PSScriptRoot "OutlookAutoArchive.exe" } else { Join-Path (Get-Location) "OutlookAutoArchive.exe" }
+             
+             # Check if executable exists, fall back to PowerShell script
+             if (-not (Test-Path $scriptPath)) {
+                 $scriptPath = if ($PSScriptRoot) { Join-Path $PSScriptRoot "OutlookAutoArchive.ps1" } else { Join-Path (Get-Location) "OutlookAutoArchive.ps1" }
+                 $arguments = "-ExecutionPolicy Bypass -File `"$scriptPath`""
+                 $program = "powershell.exe"
+             } else {
+                 $arguments = ""
+                 $program = $scriptPath
+             }
+             
+             # Create the scheduled task
+             $createTaskCmd = "schtasks /create /tn `"$taskName`" /tr `"$program`""
+             if ($arguments) { $createTaskCmd += " /sc daily /st $scheduledTime /f" } else { $createTaskCmd += " /sc daily /st $scheduledTime /f" }
+             
+             Write-Host "Creating scheduled task..." -ForegroundColor Yellow
+             $result = Invoke-Expression $createTaskCmd
+             
+             if ($LASTEXITCODE -eq 0) {
+                 Write-Host "✅ Daily scheduled task created successfully!" -ForegroundColor Green
+                 Write-Host "Task will run daily at $scheduledTime" -ForegroundColor White
+             } else {
+                 Write-Host "⚠️  Could not create scheduled task automatically." -ForegroundColor Yellow
+                 Write-Host "You can create it manually using Task Scheduler:" -ForegroundColor White
+                 Write-Host "1. Open Task Scheduler" -ForegroundColor Gray
+                 Write-Host "2. Create Basic Task" -ForegroundColor Gray
+                 Write-Host "3. Name: Outlook Auto Archive" -ForegroundColor Gray
+                 Write-Host "4. Trigger: Daily at $scheduledTime" -ForegroundColor Gray
+                 Write-Host "5. Action: Start program: $program" -ForegroundColor Gray
+             }
+         }
+         catch {
+             Write-Host "❌ Error creating scheduled task: $_" -ForegroundColor Red
+             Write-Host "You can set up scheduling manually later." -ForegroundColor Yellow
+         }
+     }
+     elseif ($scheduleChoice -eq '2') {
+         Write-Host ""
+         Write-Host "Setting up Outlook startup task..." -ForegroundColor Cyan
+         
+         try {
+             # Check if Setup_OutlookStartup_Task.ps1 exists
+             $setupScriptPath = if ($PSScriptRoot) { Join-Path $PSScriptRoot "Setup_OutlookStartup_Task.ps1" } else { Join-Path (Get-Location) "Setup_OutlookStartup_Task.ps1" }
+             
+             if (Test-Path $setupScriptPath) {
+                 Write-Host "Running Outlook startup task setup..." -ForegroundColor Yellow
+                 & powershell.exe -ExecutionPolicy Bypass -File $setupScriptPath
+                 Write-Host "✅ Outlook startup task setup completed!" -ForegroundColor Green
+             } else {
+                 Write-Host "⚠️  Setup script not found. Creating basic startup task..." -ForegroundColor Yellow
+                 
+                 # Create a basic startup task
+                 $taskName = "Outlook Auto Archive - Startup"
+                 $scriptPath = if ($PSScriptRoot) { Join-Path $PSScriptRoot "OutlookAutoArchive.exe" } else { Join-Path (Get-Location) "OutlookAutoArchive.exe" }
+                 
+                 if (-not (Test-Path $scriptPath)) {
+                     $scriptPath = if ($PSScriptRoot) { Join-Path $PSScriptRoot "OutlookAutoArchive.ps1" } else { Join-Path (Get-Location) "OutlookAutoArchive.ps1" }
+                     $arguments = "-ExecutionPolicy Bypass -File `"$scriptPath`""
+                     $program = "powershell.exe"
+                 } else {
+                     $arguments = ""
+                     $program = $scriptPath
+                 }
+                 
+                 $createTaskCmd = "schtasks /create /tn `"$taskName`" /tr `"$program`" /sc onstart /delay 0000:30 /f"
+                 if ($arguments) { $createTaskCmd += " $arguments" }
+                 
+                 $result = Invoke-Expression $createTaskCmd
+                 
+                 if ($LASTEXITCODE -eq 0) {
+                     Write-Host "✅ Startup task created successfully!" -ForegroundColor Green
+                     Write-Host "Task will run 30 seconds after system startup" -ForegroundColor White
+                 } else {
+                     Write-Host "⚠️  Could not create startup task automatically." -ForegroundColor Yellow
+                 }
+             }
+         }
+         catch {
+             Write-Host "❌ Error creating startup task: $_" -ForegroundColor Red
+             Write-Host "You can set up scheduling manually later." -ForegroundColor Yellow
+         }
+     }
+     else {
+         Write-Host ""
+         Write-Host "Scheduling skipped. You can set it up later using:" -ForegroundColor Yellow
+         Write-Host "1. Task Scheduler GUI" -ForegroundColor White
+         Write-Host "2. Setup_OutlookStartup_Task.ps1 script" -ForegroundColor White
+         Write-Host "3. Manual schtasks command" -ForegroundColor White
+     }
+     
+     Write-Host ""
+     Write-Host "Next steps:" -ForegroundColor Cyan
+     Write-Host "1. The script will now run in dry-run mode to test everything" -ForegroundColor White
+     Write-Host "2. Check the log files to verify everything works" -ForegroundColor White
+     Write-Host "3. When ready, edit config.json and set 'DryRun': false" -ForegroundColor White
+     Write-Host "4. Test your scheduled task if you created one" -ForegroundColor White
     
     if ($gmailAccounts.Count -gt 0) {
         Write-Host ""

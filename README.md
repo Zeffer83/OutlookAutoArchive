@@ -3,7 +3,7 @@
 A PowerShell script that automatically archives emails older than a specified number of days from your Outlook Inbox to organized year/month folders. The script creates a structured archive system with folders organized by year and month (e.g., `Archive\2025\2025-08`) for easy email retrieval and management.
 
 **Author**: Ryan Zeffiretti  
-**Version**: 1.6.0  
+**Version**: 1.7.0  
 **License**: MIT
 
 ## Features
@@ -102,7 +102,7 @@ This script has been thoroughly tested and is working perfectly with all email a
 
 **Test Results**: Successfully processed 1,000+ emails across multiple accounts with proper archive folder detection and skip rule functionality.
 
-**New in v1.6.0**: Interactive first-run setup that automatically detects your email accounts, configures archive folders/labels, and stores the paths for faster future access.
+**New in v1.7.0**: Interactive scheduled task setup during first-run configuration, allowing users to choose between daily scheduling, Outlook startup integration, or manual setup later.
 
 ## How It Works
 
@@ -455,4 +455,4 @@ If you encounter issues:
 
 ---
 
-**Note**: This script is designed for personal use and should be tested thoroughly in your environment before production use. This is version 1.6.0 and is provided "as-is" with no planned updates unless critical issues are found.
+**Note**: This script is designed for personal use and should be tested thoroughly in your environment before production use. This is version 1.7.0 and is provided "as-is" with no planned updates unless critical issues are found.
