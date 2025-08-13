@@ -19,16 +19,17 @@ if (-not (Test-Path $configPath)) {
     if (Test-Path $exampleConfigPath) {
         Copy-Item $exampleConfigPath $configPath
         Write-Host "Created config.json from config.example.json"
-    } else {
+    }
+    else {
         # Create default config
         $defaultConfig = @{
             RetentionDays = 14
-            DryRun = $true
-            LogPath = "%USERPROFILE%\Documents\OutlookAutoArchiveLogs"
-            GmailLabel = "OutlookArchive"
-            SkipRules = @(
+            DryRun        = $true
+            LogPath       = "%USERPROFILE%\Documents\OutlookAutoArchiveLogs"
+            GmailLabel    = "OutlookArchive"
+            SkipRules     = @(
                 @{
-                    Mailbox = "Your Mailbox Name"
+                    Mailbox  = "Your Mailbox Name"
                     Subjects = @("Subject Pattern 1", "Subject Pattern 2")
                 }
             )
@@ -42,7 +43,8 @@ if (-not (Test-Path $configPath)) {
 
 try {
     $config = Get-Content $configPath -Raw | ConvertFrom-Json
-} catch {
+}
+catch {
     Write-Error "Invalid JSON in config.json: $_"
     Write-Host "Please check your config.json file for syntax errors"
     exit 1
