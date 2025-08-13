@@ -3,7 +3,7 @@
   Auto-archive Outlook emails with options from config.json
 #>
 
-# Version: 1.7.0
+# Version: 1.8.0
 # Author: Ryan Zeffiretti
 # Description: Auto-archive Outlook emails with options from config.json
 
@@ -74,6 +74,134 @@ if ($config.OnFirstRun -eq $true) {
     Write-Host "This appears to be your first time running the script." -ForegroundColor White
     Write-Host "Let's set up your archive folders and configuration." -ForegroundColor White
     Write-Host ""
+    
+    # Ask about installation location
+    Write-Host "Where would you like to install Outlook Auto Archive?" -ForegroundColor Cyan
+    Write-Host "This will be the permanent location for the application and its files." -ForegroundColor White
+    Write-Host ""
+    Write-Host "Recommended locations:" -ForegroundColor Yellow
+    Write-Host "1. Program Files (C:\Program Files\OutlookAutoArchive\) - System-wide installation" -ForegroundColor White
+    Write-Host "2. User Documents (C:\Users\$env:USERNAME\Documents\OutlookAutoArchive\) - User-specific installation" -ForegroundColor White
+    Write-Host "3. Custom location - Choose your own folder" -ForegroundColor White
+    Write-Host "4. Current location - Keep everything where it is now" -ForegroundColor White
+    Write-Host ""
+    
+    do {
+        $installChoice = Read-Host "Enter choice (1-4)"
+        if ($installChoice -match '^[1-4]$') {
+            break
+        }
+        Write-Host "Please enter 1, 2, 3, or 4." -ForegroundColor Red
+    } while ($true)
+    
+    $installPath = ""
+    $currentLocation = if ($PSScriptRoot) { $PSScriptRoot } else { Get-Location }
+    
+    if ($installChoice -eq '1') {
+        $installPath = "C:\Program Files\OutlookAutoArchive"
+        Write-Host "Selected: Program Files installation" -ForegroundColor Green
+    }
+    elseif ($installChoice -eq '2') {
+        $installPath = "$env:USERPROFILE\Documents\OutlookAutoArchive"
+        Write-Host "Selected: User Documents installation" -ForegroundColor Green
+    }
+    elseif ($installChoice -eq '3') {
+        Write-Host ""
+        Write-Host "Enter the full path where you want to install the application:" -ForegroundColor Cyan
+        Write-Host "Example: C:\MyTools\OutlookAutoArchive" -ForegroundColor Gray
+        do {
+            $customPath = Read-Host "Installation path"
+            if ([string]::IsNullOrWhiteSpace($customPath)) {
+                Write-Host "Please enter a valid path." -ForegroundColor Red
+                continue
+            }
+            
+            # Validate the path
+            try {
+                $installPath = [System.IO.Path]::GetFullPath($customPath)
+                break
+            }
+            catch {
+                Write-Host "Invalid path format. Please enter a valid path." -ForegroundColor Red
+            }
+        } while ($true)
+        Write-Host "Selected: Custom location ($installPath)" -ForegroundColor Green
+    }
+    else {
+        $installPath = $currentLocation
+        Write-Host "Selected: Current location ($installPath)" -ForegroundColor Green
+    }
+    
+    # Check if we need to move files
+    if ($installPath -ne $currentLocation) {
+        Write-Host ""
+        Write-Host "Setting up installation at: $installPath" -ForegroundColor Cyan
+        
+        try {
+            # Create the installation directory if it doesn't exist
+            if (-not (Test-Path $installPath)) {
+                New-Item -Path $installPath -ItemType Directory -Force | Out-Null
+                Write-Host "✅ Created installation directory" -ForegroundColor Green
+            }
+            
+            # Copy all necessary files to the installation location
+            $filesToCopy = @(
+                "OutlookAutoArchive.exe",
+                "OutlookAutoArchive.ps1", 
+                "Run_OutlookAutoArchive.bat",
+                "Run_OutlookAutoArchive_WithCheck.bat",
+                "Setup_Archive_Folders.bat",
+                "Setup_Archive_Folders.ps1",
+                "Setup_OutlookStartup_Task.ps1",
+                "config.example.json",
+                "README.md",
+                "CHANGELOG.md",
+                "LICENSE",
+                "CONTRIBUTING.md",
+                "SECURITY.md"
+            )
+            
+            $filesCopied = 0
+            foreach ($file in $filesToCopy) {
+                $sourceFile = Join-Path $currentLocation $file
+                $destFile = Join-Path $installPath $file
+                
+                if (Test-Path $sourceFile) {
+                    Copy-Item -Path $sourceFile -Destination $destFile -Force
+                    $filesCopied++
+                }
+            }
+            
+            Write-Host "✅ Copied $filesCopied files to installation directory" -ForegroundColor Green
+            
+            # Update the script directory for the rest of the setup
+            $scriptDir = $installPath
+            $configPath = Join-Path $installPath 'config.json'
+            $exampleConfigPath = Join-Path $installPath 'config.example.json'
+            
+            Write-Host ""
+            Write-Host "Installation completed successfully!" -ForegroundColor Green
+            Write-Host "The application is now installed at: $installPath" -ForegroundColor White
+            Write-Host ""
+            Write-Host "Note: You can now delete the original files from: $currentLocation" -ForegroundColor Yellow
+            Write-Host "The application will run from the new location." -ForegroundColor White
+            Write-Host ""
+            
+        }
+        catch {
+            Write-Host "❌ Error during installation: $_" -ForegroundColor Red
+            Write-Host "Continuing with current location..." -ForegroundColor Yellow
+            $scriptDir = $currentLocation
+            $configPath = Join-Path $currentLocation 'config.json'
+            $exampleConfigPath = Join-Path $currentLocation 'config.example.json'
+        }
+    }
+    else {
+        # Keep current location
+        $scriptDir = $currentLocation
+        $configPath = Join-Path $currentLocation 'config.json'
+        $exampleConfigPath = Join-Path $currentLocation 'config.example.json'
+    }
     
     # Check if Outlook is running
     try {

@@ -5,6 +5,34 @@ All notable changes to the Outlook Auto Archive Script will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.0] - 2025-08-13
+
+**Author**: Ryan Zeffiretti
+
+### Added
+
+- **Interactive Installation Location Setup**: New guided installation setup during first-run configuration
+- **Multiple Installation Options**: Users can choose between Program Files, User Documents, custom location, or current location
+- **Automatic File Migration**: Automatically copies all application files to the chosen installation location
+- **Path Validation**: Validates custom installation paths to ensure they are valid
+- **Installation Feedback**: Provides detailed feedback during the installation process
+- **File Management**: Comprehensive file copying with error handling and rollback
+
+### Changed
+
+- **Enhanced First-Run Experience**: First-run setup now includes complete installation location configuration
+- **User Experience**: Streamlined installation process with guided location selection
+- **File Organization**: Better organization of application files in chosen installation directory
+- **Documentation**: Updated to reflect new installation capabilities
+
+### Technical Details
+
+- **Installation Options**: Program Files (system-wide), User Documents (user-specific), custom location, or current location
+- **File Migration**: Copies all necessary files including executables, scripts, documentation, and configuration files
+- **Path Handling**: Intelligent path detection and validation for custom installation locations
+- **Error Recovery**: Graceful error handling with fallback to current location if installation fails
+- **Directory Creation**: Automatic creation of installation directories if they don't exist
+
 ## [1.7.0] - 2025-08-13
 
 **Author**: Ryan Zeffiretti
