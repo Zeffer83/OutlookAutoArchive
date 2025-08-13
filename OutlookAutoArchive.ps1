@@ -3,6 +3,10 @@
   Auto-archive Outlook emails with options from config.json
 #>
 
+# Version: 1.2.0
+# Author: Ryan Zeffiretti
+# Description: Auto-archive Outlook emails with options from config.json
+
 Add-Type -AssemblyName Microsoft.Office.Interop.Outlook
 $outlook = New-Object -ComObject Outlook.Application
 $namespace = $outlook.GetNamespace("MAPI")

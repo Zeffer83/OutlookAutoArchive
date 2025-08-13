@@ -3,7 +3,7 @@
 A PowerShell script that automatically archives emails older than a specified number of days from your Outlook Inbox to organized year/month folders. The script creates a structured archive system with folders organized by year and month (e.g., `Archive\2024\2024-12`) for easy email retrieval and management.
 
 **Author**: Ryan Zeffiretti  
-**Version**: 1.1.0  
+**Version**: 1.2.0  
 **License**: MIT
 
 ## Features
@@ -36,6 +36,13 @@ A PowerShell script that automatically archives emails older than a specified nu
 2. Ensure Outlook is installed and configured on your system
 3. **Create the main Archive folder** (see Setup Requirements section below)
 4. The script is ready to run - no additional installation required
+
+**Files included:**
+- `OutlookAutoArchive.exe` - Executable version (recommended for most users)
+- `Run_OutlookAutoArchive.bat` - Simple batch file to run the executable
+- `OutlookAutoArchive.ps1` - PowerShell script version
+- `config.example.json` - Example configuration file
+- `config.json` - Your configuration file (auto-created on first run)
 
 **Note**: The script will automatically create a `config.json` file on first run if one doesn't exist. It will either copy from `config.example.json` if available, or create a default configuration with safe settings (DryRun = true).
 
@@ -120,7 +127,29 @@ Archive/
 
 ## Usage
 
-### Basic Usage
+### Option 1: Using the Executable (Recommended)
+
+The easiest way to run the script is using the provided executable:
+
+**Method A: Double-click the batch file**
+```
+Run_OutlookAutoArchive.bat
+```
+
+**Method B: Run the executable directly**
+```powershell
+# Run the executable (it will use config.json automatically)
+.\OutlookAutoArchive.exe
+```
+
+**Benefits of using the executable:**
+- No PowerShell execution policy issues
+- Double-click to run
+- Works with Windows Task Scheduler
+- No need to open PowerShell
+- User-friendly batch file included
+
+### Option 2: Using PowerShell Script
 
 ```powershell
 # Run in dry-run mode (recommended first time)
@@ -136,6 +165,15 @@ Archive/
 
 To run automatically, create a Windows Task Scheduler task:
 
+#### Using the Executable (Recommended):
+1. Open Task Scheduler
+2. Create Basic Task
+3. Set trigger (e.g., daily at 2 AM)
+4. Action: Start a program
+5. Program: `C:\path\to\OutlookAutoArchive.exe`
+6. Arguments: (leave empty)
+
+#### Using PowerShell Script:
 1. Open Task Scheduler
 2. Create Basic Task
 3. Set trigger (e.g., daily at 2 AM)
@@ -316,4 +354,4 @@ If you encounter issues:
 
 ---
 
-**Note**: This script is designed for personal use and should be tested thoroughly in your environment before production use. This is version 1.1.0 and is provided "as-is" with no planned updates unless critical issues are found.
+**Note**: This script is designed for personal use and should be tested thoroughly in your environment before production use. This is version 1.2.0 and is provided "as-is" with no planned updates unless critical issues are found.

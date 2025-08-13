@@ -5,6 +5,28 @@ All notable changes to the Outlook Auto Archive Script will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2024-12-19
+
+**Author**: Ryan Zeffiretti
+
+### Added
+- **Executable Version**: Created `OutlookAutoArchive.exe` for easy deployment
+- **Batch File**: Added `Run_OutlookAutoArchive.bat` for user-friendly execution
+- **Enhanced User Experience**: No PowerShell execution policy issues
+- **Task Scheduler Support**: Easy integration with Windows Task Scheduler
+- **Double-Click Execution**: Users can run by double-clicking the batch file
+
+### Changed
+- **Installation**: Simplified with executable and batch file options
+- **Documentation**: Updated README with executable usage instructions
+- **Version Management**: Updated to version 1.2.0
+- **GitHub Preparation**: Project ready for GitHub release
+
+### Technical Details
+- **Executable**: Created using PS2EXE tool
+- **Compatibility**: Works on Windows with Outlook installed
+- **Configuration**: Still uses `config.json` for all settings
+
 ## [1.1.0] - 2024-12-19
 
 **Author**: Ryan Zeffiretti
@@ -89,5 +111,6 @@ By using this software, you acknowledge that:
 
 ## Version History
 
+- **1.2.0**: Executable version and enhanced user experience (2024-12-19)
 - **1.1.0**: External configuration and enhanced skip rules (2024-12-19)
 - **1.0.0**: Initial release with core functionality (2024-12-19)

@@ -1,0 +1,71 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - name: Setup PowerShell
+      uses: actions/setup-powershell@v1
+      with:
+        powershell-version: '7.0'
+        
+    - name: Install PS2EXE
+      run: |
+        Install-Module -Name PS2EXE -Force -Scope CurrentUser
+        
+    - name: Create Executable
+      run: |
+        Invoke-PS2EXE -InputFile "OutlookAutoArchive.ps1" -OutputFile "OutlookAutoArchive.exe" -NoConsole -Title "Outlook Auto Archive" -Version "1.2.0" -Company "Ryan Zeffiretti" -Product "Outlook Auto Archive Script"
+        
+    - name: Create Release Package
+      run: |
+        .\create_release_package.ps1
+        
+    - name: Create Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        body: |
+          ## What's New in Version 1.2.0
+          
+          ### ✨ Major Improvements
+          - **Executable Version**: Now includes `OutlookAutoArchive.exe` for easy deployment
+          - **User-Friendly Batch File**: Added `Run_OutlookAutoArchive.bat` for simple double-click execution
+          - **No PowerShell Required**: Users can run the tool without dealing with PowerShell execution policies
+          
+          ### 🚀 Key Features
+          - **Double-Click Execution**: Simply double-click the batch file to run
+          - **Automatic Configuration**: Still uses `config.json` for all settings
+          - **Safe Defaults**: Executable starts in dry-run mode by default
+          
+          ### 📋 Installation
+          1. Download and extract the files
+          2. Create an Archive folder in Outlook (see README for details)
+          3. Double-click `Run_OutlookAutoArchive.bat` to run
+          4. Edit `config.json` to customize settings
+          
+          See RELEASE_NOTES.md for complete details.
+        draft: false
+        prerelease: false
+        
+    - name: Upload Release Assets
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./OutlookAutoArchive-v1.2.0.zip
+        asset_name: OutlookAutoArchive-v1.2.0.zip
+        asset_content_type: application/zip

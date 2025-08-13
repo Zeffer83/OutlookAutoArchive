@@ -43,3 +43,9 @@ Archive/
 
 # Configuration files (may contain sensitive data)
 config.json
+
+# Generated executables
+*.exe
+
+# Release packages
+OutlookAutoArchive-v*.zip
