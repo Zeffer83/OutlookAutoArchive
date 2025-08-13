@@ -3,7 +3,7 @@
   Auto-archive Outlook emails with options from config.json
 #>
 
-# Version: 1.5.0
+# Version: 1.6.0
 # Author: Ryan Zeffiretti
 # Description: Auto-archive Outlook emails with options from config.json
 
@@ -42,6 +42,8 @@ if (-not (Test-Path $configPath)) {
             DryRun        = $true
             LogPath       = "%USERPROFILE%\Documents\OutlookAutoArchiveLogs"
             GmailLabel    = "OutlookArchive"
+            OnFirstRun    = $true
+            ArchiveFolders = @{}
             SkipRules     = @(
                 @{
                     Mailbox  = "Your Mailbox Name"
@@ -63,6 +65,303 @@ catch {
     Write-Error "Invalid JSON in config.json: $_"
     Write-Host "Please check your config.json file for syntax errors"
     exit 1
+}
+
+# === First Run Setup ===
+if ($config.OnFirstRun -eq $true) {
+    Write-Host ""
+    Write-Host "=== Welcome to Outlook Auto Archive - First Run Setup ===" -ForegroundColor Cyan
+    Write-Host "This appears to be your first time running the script." -ForegroundColor White
+    Write-Host "Let's set up your archive folders and configuration." -ForegroundColor White
+    Write-Host ""
+    
+    # Check if Outlook is running
+    try {
+        $outlookProcesses = Get-Process -Name "OUTLOOK" -ErrorAction SilentlyContinue
+        if (-not $outlookProcesses) {
+            Write-Host "❌ Outlook is not running. Please start Outlook and run the script again." -ForegroundColor Red
+            Write-Host "The setup requires Outlook to be running to access your email accounts." -ForegroundColor Yellow
+            exit 1
+        }
+        Write-Host "✅ Outlook is running" -ForegroundColor Green
+    }
+    catch {
+        Write-Host "⚠️  Could not check Outlook status. Proceeding anyway..." -ForegroundColor Yellow
+    }
+    
+    # Connect to Outlook
+    try {
+        Add-Type -AssemblyName Microsoft.Office.Interop.Outlook
+        $outlook = New-Object -ComObject Outlook.Application
+        $namespace = $outlook.GetNamespace("MAPI")
+        Write-Host "✅ Connected to Outlook" -ForegroundColor Green
+    }
+    catch {
+        Write-Host "❌ Failed to connect to Outlook: $_" -ForegroundColor Red
+        exit 1
+    }
+    
+    Write-Host ""
+    Write-Host "Scanning your email accounts..." -ForegroundColor Cyan
+    
+    $accounts = @()
+    $gmailAccounts = @()
+    $regularAccounts = @()
+    
+    foreach ($account in $namespace.Folders) {
+        $accounts += $account.Name
+        
+        # Check if this looks like a Gmail account
+        $isGmail = $account.Name -like "*@gmail.com" -or $account.Name -like "*@googlemail.com" -or $account.Name -like "*@gmail.co.uk"
+        
+        if ($isGmail) {
+            $gmailAccounts += $account.Name
+        }
+        else {
+            $regularAccounts += $account.Name
+        }
+    }
+    
+    Write-Host "Found $($accounts.Count) email account(s):" -ForegroundColor Green
+    foreach ($account in $accounts) {
+        Write-Host "  - $account" -ForegroundColor White
+    }
+    
+    if ($gmailAccounts.Count -gt 0) {
+        Write-Host ""
+        Write-Host "Gmail accounts detected: $($gmailAccounts -join ', ')" -ForegroundColor Yellow
+        Write-Host "Note: Gmail accounts will use labels instead of folders for archiving." -ForegroundColor Gray
+    }
+    
+    Write-Host ""
+    
+    # Configure retention days
+    Write-Host "How many days should emails stay in your Inbox before being archived?" -ForegroundColor Cyan
+    Write-Host "Recommended: 14-30 days" -ForegroundColor Gray
+    do {
+        $retentionInput = Read-Host "Enter number of days (default: 14)"
+        if ([string]::IsNullOrWhiteSpace($retentionInput)) {
+            $retentionDays = 14
+            break
+        }
+        if ($retentionInput -match '^\d+$' -and [int]$retentionInput -gt 0) {
+            $retentionDays = [int]$retentionInput
+            break
+        }
+        Write-Host "Please enter a valid positive number." -ForegroundColor Red
+    } while ($true)
+    
+    Write-Host "✅ Retention period set to $retentionDays days" -ForegroundColor Green
+    
+    # Configure Gmail label if Gmail accounts exist
+    $gmailLabel = "OutlookArchive"
+    if ($gmailAccounts.Count -gt 0) {
+        Write-Host ""
+        Write-Host "For Gmail accounts, what would you like to call your archive label?" -ForegroundColor Cyan
+        Write-Host "Note: 'Archive' is not allowed in Gmail, so we use a custom label name." -ForegroundColor Gray
+        Write-Host "Recommended: OutlookArchive, MyArchive, or EmailArchive" -ForegroundColor Gray
+        do {
+            $labelInput = Read-Host "Enter label name (default: OutlookArchive)"
+            if ([string]::IsNullOrWhiteSpace($labelInput)) {
+                $gmailLabel = "OutlookArchive"
+                break
+            }
+            if ($labelInput -match '^[a-zA-Z0-9_-]+$') {
+                $gmailLabel = $labelInput
+                break
+            }
+            Write-Host "Please enter a valid label name (letters, numbers, hyphens, underscores only)." -ForegroundColor Red
+        } while ($true)
+        
+        Write-Host "✅ Gmail archive label set to '$gmailLabel'" -ForegroundColor Green
+    }
+    
+    Write-Host ""
+    Write-Host "Now let's check for existing archive folders and create any missing ones..." -ForegroundColor Cyan
+    
+    $foldersCreated = 0
+    $errors = 0
+    
+    foreach ($account in $namespace.Folders) {
+        try {
+            Write-Host ""
+            Write-Host "Processing account: $($account.Name)" -ForegroundColor Cyan
+            
+            # Check if this looks like a Gmail account
+            $isGmail = $account.Name -like "*@gmail.com" -or $account.Name -like "*@googlemail.com" -or $account.Name -like "*@gmail.co.uk"
+            
+            if ($isGmail) {
+                Write-Host "  Detected Gmail account" -ForegroundColor Gray
+                
+                # Check if Gmail label already exists
+                $existingLabel = $null
+                try {
+                    $existingLabel = $account.Folders.Item($gmailLabel)
+                }
+                catch {}
+                
+                if ($existingLabel) {
+                    Write-Host "  ✅ Gmail label '$gmailLabel' already exists" -ForegroundColor Green
+                    # Store the Gmail label path in config
+                    $config.ArchiveFolders[$account.Name] = "GmailLabel:$gmailLabel"
+                }
+                else {
+                    Write-Host "  Gmail label '$gmailLabel' not found" -ForegroundColor Yellow
+                    $createLabel = Read-Host "  Would you like to create it? (Y/N)"
+                    if ($createLabel -eq 'Y' -or $createLabel -eq 'y') {
+                        try {
+                            $newLabel = $account.Folders.Add($gmailLabel)
+                            Write-Host "  ✅ Created Gmail label '$gmailLabel'" -ForegroundColor Green
+                            $foldersCreated++
+                            # Store the Gmail label path in config
+                            $config.ArchiveFolders[$account.Name] = "GmailLabel:$gmailLabel"
+                        }
+                        catch {
+                            Write-Host "  ❌ Failed to create Gmail label: $_" -ForegroundColor Red
+                            $errors++
+                        }
+                    }
+                    else {
+                        Write-Host "  ⚠️  Skipped creating Gmail label" -ForegroundColor Yellow
+                    }
+                }
+            }
+            else {
+                Write-Host "  Detected regular email account" -ForegroundColor Gray
+                
+                # Check for existing archive folder
+                $archiveFolder = $null
+                $archivePath = ""
+                
+                # Check root level first
+                try {
+                    $archiveFolder = $account.Folders.Item("Archive")
+                    $archivePath = "Archive"
+                    Write-Host "  ✅ Archive folder already exists at root level" -ForegroundColor Green
+                    # Store the archive folder path in config
+                    $config.ArchiveFolders[$account.Name] = "Root:Archive"
+                }
+                catch {
+                    # Check Inbox\Archive
+                    try {
+                        $inbox = $account.Folders.Item("Inbox")
+                        if ($inbox) {
+                            $archiveFolder = $inbox.Folders.Item("Archive")
+                            $archivePath = "Inbox\Archive"
+                            Write-Host "  ✅ Archive folder already exists in Inbox" -ForegroundColor Green
+                            # Store the archive folder path in config
+                            $config.ArchiveFolders[$account.Name] = "Inbox:Archive"
+                        }
+                    }
+                    catch {}
+                    
+                    # If no archive folder found, ask user where to create it
+                    if (-not $archiveFolder) {
+                        Write-Host "  No Archive folder found" -ForegroundColor Yellow
+                        Write-Host "  Where would you like to create the Archive folder?" -ForegroundColor Cyan
+                        Write-Host "  1. Root level (recommended)" -ForegroundColor White
+                        Write-Host "  2. Inside Inbox folder" -ForegroundColor White
+                        Write-Host "  3. Skip this account" -ForegroundColor White
+                        
+                        do {
+                            $locationChoice = Read-Host "  Enter choice (1-3)"
+                            if ($locationChoice -match '^[1-3]$') {
+                                break
+                            }
+                            Write-Host "  Please enter 1, 2, or 3." -ForegroundColor Red
+                        } while ($true)
+                        
+                        if ($locationChoice -eq '1') {
+                            try {
+                                $archiveFolder = $account.Folders.Add("Archive")
+                                Write-Host "  ✅ Created Archive folder at root level" -ForegroundColor Green
+                                $foldersCreated++
+                                # Store the archive folder path in config
+                                $config.ArchiveFolders[$account.Name] = "Root:Archive"
+                            }
+                            catch {
+                                Write-Host "  ❌ Failed to create Archive folder: $_" -ForegroundColor Red
+                                $errors++
+                            }
+                        }
+                        elseif ($locationChoice -eq '2') {
+                            try {
+                                $inbox = $account.Folders.Item("Inbox")
+                                if ($inbox) {
+                                    $archiveFolder = $inbox.Folders.Add("Archive")
+                                    Write-Host "  ✅ Created Archive folder in Inbox" -ForegroundColor Green
+                                    $foldersCreated++
+                                    # Store the archive folder path in config
+                                    $config.ArchiveFolders[$account.Name] = "Inbox:Archive"
+                                }
+                                else {
+                                    Write-Host "  ❌ Could not access Inbox folder" -ForegroundColor Red
+                                    $errors++
+                                }
+                            }
+                            catch {
+                                Write-Host "  ❌ Failed to create Archive folder: $_" -ForegroundColor Red
+                                $errors++
+                            }
+                        }
+                        else {
+                            Write-Host "  ⚠️  Skipped creating Archive folder" -ForegroundColor Yellow
+                        }
+                    }
+                }
+            }
+        }
+        catch {
+            Write-Host "  ❌ Error processing account '$($account.Name)': $_" -ForegroundColor Red
+            $errors++
+        }
+    }
+    
+    Write-Host ""
+    Write-Host "=== Setup Summary ===" -ForegroundColor Cyan
+    Write-Host "Accounts processed: $($accounts.Count)" -ForegroundColor White
+    Write-Host "Folders/labels created: $foldersCreated" -ForegroundColor White
+    Write-Host "Errors encountered: $errors" -ForegroundColor $(if ($errors -gt 0) { "Red" } else { "Green" })
+    
+    # Update config with user preferences
+    $config.RetentionDays = $retentionDays
+    $config.GmailLabel = $gmailLabel
+    $config.OnFirstRun = $false
+    
+    # Initialize ArchiveFolders if it doesn't exist
+    if (-not $config.ArchiveFolders) {
+        $config.ArchiveFolders = @{}
+    }
+    
+    # Save updated config
+    try {
+        $config | ConvertTo-Json -Depth 3 | Out-File $configPath -Encoding UTF8
+        Write-Host "✅ Configuration saved" -ForegroundColor Green
+    }
+    catch {
+        Write-Host "❌ Failed to save configuration: $_" -ForegroundColor Red
+    }
+    
+    Write-Host ""
+    Write-Host "🎉 First run setup completed!" -ForegroundColor Green
+    Write-Host ""
+    Write-Host "Next steps:" -ForegroundColor Cyan
+    Write-Host "1. The script will now run in dry-run mode to test everything" -ForegroundColor White
+    Write-Host "2. Check the log files to verify everything works" -ForegroundColor White
+    Write-Host "3. When ready, edit config.json and set 'DryRun': false" -ForegroundColor White
+    Write-Host "4. Set up scheduled execution if desired" -ForegroundColor White
+    
+    if ($gmailAccounts.Count -gt 0) {
+        Write-Host ""
+        Write-Host "For Gmail users:" -ForegroundColor Cyan
+        Write-Host "- Make sure IMAP is enabled in Gmail settings" -ForegroundColor White
+        Write-Host "- Check 'Show in IMAP' for your labels in Gmail web interface" -ForegroundColor White
+        Write-Host "- It may take a few minutes for labels to sync to Outlook" -ForegroundColor White
+    }
+    
+    Write-Host ""
+    Write-Host "=== Continuing with archive process... ===" -ForegroundColor Cyan
+    Write-Host ""
 }
 
 # === Apply config settings ===
@@ -163,51 +462,101 @@ function Get-ArchiveFolder {
 
     $archive = $null
 
-    # Inbox\Archive
-    try {
-        $inbox = $account.Folders.Item("Inbox")
-        if ($inbox -and ($inbox.Folders | Where-Object { $_.Name -eq "Archive" })) {
-            $archive = $inbox.Folders.Item("Archive")
-        }
-    }
-    catch {}
-
-    # Root-level Archive
-    if (-not $archive) {
-        if ($account.Folders | Where-Object { $_.Name -eq "Archive" }) {
-            try { $archive = $account.Folders.Item("Archive") } catch {}
-        }
-    }
-
-    # Gmail custom label
-    if (-not $archive -and $GmailLabel) {
-        Write-Host "Looking for Gmail label: $GmailLabel" -ForegroundColor Yellow
-        Write-Host "Available folders in $($account.Name):" -ForegroundColor Cyan
-        try {
-            # Try to access the Gmail label directly by name
+    # Check if we have a stored path for this account
+    if ($config.ArchiveFolders -and $config.ArchiveFolders.ContainsKey($account.Name)) {
+        $storedPath = $config.ArchiveFolders[$account.Name]
+        
+        if ($storedPath -like "GmailLabel:*") {
+            # Gmail label path
+            $labelName = $storedPath.Split(":")[1]
             try {
-                $archive = $account.Folders.Item($GmailLabel)
-                Write-Host "  Found Gmail label: $GmailLabel" -ForegroundColor Green
+                $archive = $account.Folders.Item($labelName)
+                Write-Host "  Using stored Gmail label: $labelName" -ForegroundColor Green
             }
             catch {
-                Write-Host "  Gmail label '$GmailLabel' not found" -ForegroundColor Yellow
-                
-                # Try to enumerate folders as fallback
-                $folders = @($account.Folders)
-                Write-Host "  Found $($folders.Count) folders" -ForegroundColor Gray
-                
-                foreach ($folder in $folders) {
-                    Write-Host "  - $($folder.Name)" -ForegroundColor Gray
-                    if ($folder.Name -eq $GmailLabel) { 
-                        $archive = $folder; 
-                        Write-Host "  Found Gmail label: $GmailLabel" -ForegroundColor Green
-                        break 
+                Write-Host "  Stored Gmail label '$labelName' not found, will search..." -ForegroundColor Yellow
+            }
+        }
+        elseif ($storedPath -like "Root:*") {
+            # Root-level archive folder
+            $folderName = $storedPath.Split(":")[1]
+            try {
+                $archive = $account.Folders.Item($folderName)
+                Write-Host "  Using stored root folder: $folderName" -ForegroundColor Green
+            }
+            catch {
+                Write-Host "  Stored root folder '$folderName' not found, will search..." -ForegroundColor Yellow
+            }
+        }
+        elseif ($storedPath -like "Inbox:*") {
+            # Inbox-level archive folder
+            $folderName = $storedPath.Split(":")[1]
+            try {
+                $inbox = $account.Folders.Item("Inbox")
+                if ($inbox) {
+                    $archive = $inbox.Folders.Item($folderName)
+                    Write-Host "  Using stored Inbox folder: Inbox\$folderName" -ForegroundColor Green
+                }
+            }
+            catch {
+                Write-Host "  Stored Inbox folder 'Inbox\$folderName' not found, will search..." -ForegroundColor Yellow
+            }
+        }
+    }
+
+    # If stored path didn't work, fall back to search (for backward compatibility)
+    if (-not $archive) {
+        Write-Host "  Searching for archive folders..." -ForegroundColor Yellow
+        
+        # Inbox\Archive
+        try {
+            $inbox = $account.Folders.Item("Inbox")
+            if ($inbox -and ($inbox.Folders | Where-Object { $_.Name -eq "Archive" })) {
+                $archive = $inbox.Folders.Item("Archive")
+                Write-Host "  Found Inbox\Archive folder" -ForegroundColor Green
+            }
+        }
+        catch {}
+
+        # Root-level Archive
+        if (-not $archive) {
+            if ($account.Folders | Where-Object { $_.Name -eq "Archive" }) {
+                try { 
+                    $archive = $account.Folders.Item("Archive") 
+                    Write-Host "  Found root Archive folder" -ForegroundColor Green
+                } catch {}
+            }
+        }
+
+        # Gmail custom label
+        if (-not $archive -and $GmailLabel) {
+            Write-Host "  Looking for Gmail label: $GmailLabel" -ForegroundColor Yellow
+            try {
+                # Try to access the Gmail label directly by name
+                try {
+                    $archive = $account.Folders.Item($GmailLabel)
+                    Write-Host "  Found Gmail label: $GmailLabel" -ForegroundColor Green
+                }
+                catch {
+                    Write-Host "  Gmail label '$GmailLabel' not found" -ForegroundColor Yellow
+                    
+                    # Try to enumerate folders as fallback
+                    $folders = @($account.Folders)
+                    Write-Host "  Found $($folders.Count) folders" -ForegroundColor Gray
+                    
+                    foreach ($folder in $folders) {
+                        Write-Host "  - $($folder.Name)" -ForegroundColor Gray
+                        if ($folder.Name -eq $GmailLabel) { 
+                            $archive = $folder; 
+                            Write-Host "  Found Gmail label: $GmailLabel" -ForegroundColor Green
+                            break 
+                        }
                     }
                 }
             }
-        }
-        catch {
-            Write-Host "  Error accessing folders: $_" -ForegroundColor Red
+            catch {
+                Write-Host "  Error accessing folders: $_" -ForegroundColor Red
+            }
         }
     }
 

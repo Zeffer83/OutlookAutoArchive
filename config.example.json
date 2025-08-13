@@ -3,6 +3,8 @@
     "DryRun": true,
     "LogPath": "%USERPROFILE%\\Documents\\OutlookAutoArchiveLogs",
     "GmailLabel": "OutlookArchive",
+    "OnFirstRun": true,
+    "ArchiveFolders": {},
     "SkipRules": [
         {
             "Mailbox": "Your Mailbox Name",

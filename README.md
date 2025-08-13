@@ -3,7 +3,7 @@
 A PowerShell script that automatically archives emails older than a specified number of days from your Outlook Inbox to organized year/month folders. The script creates a structured archive system with folders organized by year and month (e.g., `Archive\2025\2025-08`) for easy email retrieval and management.
 
 **Author**: Ryan Zeffiretti  
-**Version**: 1.5.0  
+**Version**: 1.6.0  
 **License**: MIT
 
 ## Features
@@ -45,6 +45,7 @@ A PowerShell script that automatically archives emails older than a specified nu
 - `OutlookAutoArchive.exe` - **Executable version (RECOMMENDED for all users) - FULLY TESTED AND WORKING**
 - `Run_OutlookAutoArchive.bat` - **Simple batch file for easy execution**
 - `Run_OutlookAutoArchive_WithCheck.bat` - **Batch file with Outlook status check**
+- `Setup_Archive_Folders.bat` - **Easy setup for archive folders and labels (RECOMMENDED FIRST STEP)**
 - `Setup_OutlookStartup_Task.ps1` - **Setup script for Outlook startup tasks**
 - `config.example.json` - Example configuration file
 - `config.json` - Your configuration file (auto-created on first run)
@@ -59,11 +60,12 @@ The script will automatically create a `config.json` file on first run if one do
 
 **Recommended Setup Process:**
 
-1. **Double-click** `Run_OutlookAutoArchive.bat` to run the first test
-2. **Check the log files** in `%USERPROFILE%\Documents\OutlookAutoArchiveLogs\`
-3. **Review and edit** `config.json` if needed
-4. **Test again** to ensure everything works
-5. **Set up scheduled execution** (see Scheduled Execution section)
+1. **Double-click** `Setup_Archive_Folders.bat` to create archive folders and labels (RECOMMENDED FIRST STEP)
+2. **Double-click** `Run_OutlookAutoArchive.bat` to run the first test
+3. **Check the log files** in `%USERPROFILE%\Documents\OutlookAutoArchiveLogs\`
+4. **Review and edit** `config.json` if needed
+5. **Test again** to ensure everything works
+6. **Set up scheduled execution** (see Scheduled Execution section)
 
 ## Configuration
 
@@ -90,6 +92,8 @@ The script uses a `config.json` file for configuration. Edit this file to custom
 - **`DryRun`**: When `true`, shows what would be moved without actually moving emails
 - **`LogPath`**: Directory where log files are stored (supports `%USERPROFILE%` variable)
 - **`GmailLabel`**: Custom Gmail label name for archive folder (optional)
+- **`OnFirstRun`**: Set to `true` to enable interactive first-run setup (auto-set to `false` after setup)
+- **`ArchiveFolders`**: Automatically populated with detected archive folder paths for faster access
 - **`SkipRules`**: Array of rules to skip specific emails by mailbox and subject patterns
 
 ## ✅ **Status**: FULLY TESTED AND WORKING
@@ -97,6 +101,8 @@ The script uses a `config.json` file for configuration. Edit this file to custom
 This script has been thoroughly tested and is working perfectly with all email account types (Gmail, Outlook, Exchange, etc.). It successfully detects archive folders, processes emails, and applies skip rules correctly.
 
 **Test Results**: Successfully processed 1,000+ emails across multiple accounts with proper archive folder detection and skip rule functionality.
+
+**New in v1.6.0**: Interactive first-run setup that automatically detects your email accounts, configures archive folders/labels, and stores the paths for faster future access.
 
 ## How It Works
 
@@ -112,25 +118,39 @@ This script has been thoroughly tested and is working perfectly with all email a
 
 ## Setup Requirements
 
-**You need to create the main Archive folder** - the script will handle the rest automatically:
+**EASY SETUP**: Use the provided setup script to automatically create archive folders and labels!
 
-### Option 1: Create Archive folder in Inbox
+### Option 1: Automatic Setup (RECOMMENDED)
+
+1. **Double-click** `Setup_Archive_Folders.bat`
+2. **Follow the prompts** to create archive folders and labels
+3. **The script will automatically**:
+   - Detect all your email accounts
+   - Create Gmail labels for Gmail accounts
+   - Create Archive folders for regular email accounts
+   - Handle all the complex setup automatically
+
+### Option 2: Manual Setup (Advanced Users)
+
+If you prefer to create folders manually:
+
+#### Create Archive folder in Inbox
 
 1. Right-click on your Inbox
 2. Select "New Folder"
 3. Name it "Archive"
 
-### Option 2: Create Archive folder at root level
+#### Create Archive folder at root level
 
 1. Right-click on your email account name
 2. Select "New Folder"
 3. Name it "Archive"
 
-### Option 3: Use Gmail labels (see Gmail setup section below)
+#### Use Gmail labels (see Gmail setup section below)
 
 Configure a Gmail label in your `config.json` file.
 
-**The script will automatically create**:
+**The main script will automatically create**:
 
 - Year folders (e.g., "2025", "2024")
 - Month folders (e.g., "2025-08", "2025-07")
@@ -435,4 +455,4 @@ If you encounter issues:
 
 ---
 
-**Note**: This script is designed for personal use and should be tested thoroughly in your environment before production use. This is version 1.4.0 and is provided "as-is" with no planned updates unless critical issues are found.
+**Note**: This script is designed for personal use and should be tested thoroughly in your environment before production use. This is version 1.6.0 and is provided "as-is" with no planned updates unless critical issues are found.

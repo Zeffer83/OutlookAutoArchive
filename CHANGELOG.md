@@ -5,6 +5,33 @@ All notable changes to the Outlook Auto Archive Script will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0] - 2025-08-13
+
+**Author**: Ryan Zeffiretti
+
+### Added
+
+- **Interactive First-Run Setup**: New guided setup process that automatically detects email accounts and configures archive folders/labels.
+- **Smart Account Detection**: Automatically detects Gmail accounts (including @gmail.co.uk) and regular email accounts.
+- **Configurable Retention Period**: Interactive setup allows users to set their preferred retention period (default: 14 days).
+- **Gmail Label Configuration**: Interactive setup for Gmail label names with validation (prevents "Archive" which is not allowed).
+- **Archive Folder Path Storage**: Stores detected archive folder paths in config.json for faster future access.
+- **Backward Compatibility**: Falls back to folder search if stored paths are not found.
+
+### Changed
+
+- **Performance Improvement**: Archive folder detection is now much faster using stored paths instead of searching every time.
+- **User Experience**: First-time users get a guided setup experience instead of manual configuration.
+- **Configuration Management**: Archive folder paths are automatically stored and managed in config.json.
+- **Gmail Support**: Enhanced Gmail detection including @gmail.co.uk domains.
+
+### Technical Details
+
+- **Path Storage Format**: Archive folder paths stored as "Type:Name" (e.g., "GmailLabel:OutlookArchive", "Root:Archive", "Inbox:Archive").
+- **Fallback Mechanism**: If stored paths fail, script falls back to original search method for compatibility.
+- **Config Structure**: Added `OnFirstRun` and `ArchiveFolders` fields to config.json.
+- **Validation**: Gmail label names validated to prevent invalid characters.
+
 ## [1.5.0] - 2025-08-13
 
 **Author**: Ryan Zeffiretti
