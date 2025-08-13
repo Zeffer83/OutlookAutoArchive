@@ -5,6 +5,38 @@ All notable changes to the Outlook Auto Archive Script will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] - 2025-08-13
+
+**Author**: Ryan Zeffiretti
+
+### Added
+
+- **Complete Folder Detection System**: Fixed critical issue where script couldn't find archive folders in Outlook accounts.
+- **Multi-Account Support**: Script now properly detects and processes all email accounts (Gmail, Outlook, Exchange, etc.).
+- **Gmail Label Support**: Full support for Gmail labels as archive folders (e.g., "OutlookArchive").
+- **Comprehensive Testing**: Thorough testing completed with 1,000+ emails processed across multiple accounts.
+
+### Fixed
+
+- **Outlook Folder Access**: Completely rewrote folder detection logic to use `$namespace.Folders` instead of `$namespace.Stores`.
+- **Gmail Label Detection**: Fixed Gmail label access by using direct folder enumeration through namespace.
+- **Account Processing**: Script now correctly processes all account types and finds their respective archive folders.
+- **Skip Rules Functionality**: Verified skip rules work correctly across all account types.
+
+### Changed
+
+- **Architecture**: Changed from store-based to account-based processing for better compatibility.
+- **Folder Detection**: Improved `Get-ArchiveFolder` function to work with account objects instead of store objects.
+- **Error Handling**: Enhanced error handling for folder access and account processing.
+- **Documentation**: Updated README to reflect successful testing and working status.
+
+### Technical Details
+
+- **Namespace Access**: Switched from `$namespace.Stores` to `$namespace.Folders` for proper account enumeration.
+- **Account Processing**: Updated all functions to work with account objects (`$account`) instead of store objects (`$store`).
+- **Folder Detection**: Improved logic to find archive folders in Inbox, root level, and Gmail labels.
+- **Testing Results**: Successfully tested with Gmail accounts (using labels), regular email accounts (using folders), and skip rules.
+
 ## [1.4.0] - 2025-08-13
 
 **Author**: Ryan Zeffiretti

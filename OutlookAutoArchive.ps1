@@ -3,7 +3,7 @@
   Auto-archive Outlook emails with options from config.json
 #>
 
-# Version: 1.4.0
+# Version: 1.5.0
 # Author: Ryan Zeffiretti
 # Description: Auto-archive Outlook emails with options from config.json
 
@@ -159,13 +159,13 @@ function Write-Log {
 }
 
 function Get-ArchiveFolder {
-    param($store)
+    param($account)
 
     $archive = $null
 
     # Inbox\Archive
     try {
-        $inbox = $store.Folders.Item("Inbox")
+        $inbox = $account.Folders.Item("Inbox")
         if ($inbox -and ($inbox.Folders | Where-Object { $_.Name -eq "Archive" })) {
             $archive = $inbox.Folders.Item("Archive")
         }
@@ -174,26 +174,52 @@ function Get-ArchiveFolder {
 
     # Root-level Archive
     if (-not $archive) {
-        if ($store.Folders | Where-Object { $_.Name -eq "Archive" }) {
-            try { $archive = $store.Folders.Item("Archive") } catch {}
+        if ($account.Folders | Where-Object { $_.Name -eq "Archive" }) {
+            try { $archive = $account.Folders.Item("Archive") } catch {}
         }
     }
 
     # Gmail custom label
     if (-not $archive -and $GmailLabel) {
-        foreach ($folder in $store.Folders) {
-            if ($folder.Name -eq $GmailLabel) { $archive = $folder; break }
+        Write-Host "Looking for Gmail label: $GmailLabel" -ForegroundColor Yellow
+        Write-Host "Available folders in $($account.Name):" -ForegroundColor Cyan
+        try {
+            # Try to access the Gmail label directly by name
+            try {
+                $archive = $account.Folders.Item($GmailLabel)
+                Write-Host "  Found Gmail label: $GmailLabel" -ForegroundColor Green
+            }
+            catch {
+                Write-Host "  Gmail label '$GmailLabel' not found" -ForegroundColor Yellow
+                
+                # Try to enumerate folders as fallback
+                $folders = @($account.Folders)
+                Write-Host "  Found $($folders.Count) folders" -ForegroundColor Gray
+                
+                foreach ($folder in $folders) {
+                    Write-Host "  - $($folder.Name)" -ForegroundColor Gray
+                    if ($folder.Name -eq $GmailLabel) { 
+                        $archive = $folder; 
+                        Write-Host "  Found Gmail label: $GmailLabel" -ForegroundColor Green
+                        break 
+                    }
+                }
+            }
+        }
+        catch {
+            Write-Host "  Error accessing folders: $_" -ForegroundColor Red
         }
     }
 
     return $archive
 }
 
-foreach ($store in $namespace.Folders) {
+foreach ($account in $namespace.Folders) {
     try {
-        $archiveRoot = Get-ArchiveFolder $store
+        Write-Host "Processing account: $($account.Name)" -ForegroundColor Cyan
+        $archiveRoot = Get-ArchiveFolder $account
         if (-not $archiveRoot) {
-            $logMessage = "[$($store.Name)] No 'Archive' folder found, skipping."
+            $logMessage = "[$($account.Name)] No 'Archive' folder found, skipping."
             Write-Log -Message $logMessage -LogFile $LogFile
             continue
         }
@@ -217,9 +243,9 @@ foreach ($store in $namespace.Folders) {
 
         # Safe Inbox retrieval
         $inbox = $null
-        try { $inbox = $store.Folders.Item("Inbox") } catch {}
+        try { $inbox = $account.Folders.Item("Inbox") } catch {}
         if (-not $inbox) {
-            $logMessage = "[$($store.Name)] No Inbox folder, skipping message scan."
+            $logMessage = "[$($account.Name)] No Inbox folder, skipping message scan."
             Write-Log -Message $logMessage -LogFile $LogFile
             continue
         }
@@ -230,13 +256,13 @@ foreach ($store in $namespace.Folders) {
             $rawItems = @($inbox.Items | Where-Object { $_.Class -eq 43 })
         }
         catch {
-            $logMessage = "[$($store.Name)] Could not retrieve mail items: $_"
+            $logMessage = "[$($account.Name)] Could not retrieve mail items: $_"
             Write-Log -Message $logMessage -LogFile $LogFile
             continue
         }
 
         if ($rawItems.Count -eq 0) {
-            $logMessage = "[$($store.Name)] No messages found to process."
+            $logMessage = "[$($account.Name)] No messages found to process."
             Write-Log -Message $logMessage -LogFile $LogFile
             continue
         }
@@ -257,10 +283,10 @@ foreach ($store in $namespace.Folders) {
             # Apply skip rules from config
             $skipMatch = $false
             foreach ($rule in $SkipRules) {
-                if ($store.Name -eq $rule.Mailbox) {
+                if ($account.Name -eq $rule.Mailbox) {
                     foreach ($subj in $rule.Subjects) {
                         if ($mail.Subject -match [regex]::Escape($subj)) {
-                            $skipMessage = "[$($store.Name)] SKIP: $($mail.ReceivedTime.ToString('yyyy-MM-dd')) : $($mail.Subject)"
+                            $skipMessage = "[$($account.Name)] SKIP: $($mail.ReceivedTime.ToString('yyyy-MM-dd')) : $($mail.Subject)"
                             Write-Log -Message $skipMessage -LogFile $LogFile
                             $skipMatch = $true
                             break
@@ -272,7 +298,7 @@ foreach ($store in $namespace.Folders) {
             if ($skipMatch) { continue }
 
             if ($mail.ReceivedTime -lt $CutOff) {
-                $logEntry = "[$($store.Name)] $($mail.ReceivedTime.ToString('yyyy-MM-dd')) : $($mail.Subject)"
+                $logEntry = "[$($account.Name)] $($mail.ReceivedTime.ToString('yyyy-MM-dd')) : $($mail.Subject)"
                 if ($DryRun) {
                     $dryRunMessage = "DRY-RUN: Would move -> $logEntry"
                     Write-Log -Message $dryRunMessage -LogFile $LogFile
@@ -287,7 +313,7 @@ foreach ($store in $namespace.Folders) {
 
     }
     catch {
-        $errorMessage = "[$($store.Name)] Error: $_"
+        $errorMessage = "[$($account.Name)] Error: $_"
         Write-Log -Message $errorMessage -LogFile $LogFile
     }
 }
