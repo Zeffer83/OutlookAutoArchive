@@ -14,8 +14,8 @@ OutlookAutoArchiveLogs/
 # Configuration files (may contain sensitive data)
 config.json
 
-# Generated executables
-*.exe
+# Generated executables (but keep the main release executable)
+# *.exe
 
 # Generated PowerShell scripts
 WaitForOutlook.ps1
