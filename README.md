@@ -1,6 +1,6 @@
 # Outlook Auto Archive Script
 
-A PowerShell script that automatically archives emails older than a specified number of days from your Outlook Inbox to organized year/month folders. The script creates a structured archive system with folders organized by year and month (e.g., `Archive\2024\2024-12`) for easy email retrieval and management.
+A PowerShell script that automatically archives emails older than a specified number of days from your Outlook Inbox to organized year/month folders. The script creates a structured archive system with folders organized by year and month (e.g., `Archive\2025\2025-01`) for easy email retrieval and management.
 
 **Author**: Ryan Zeffiretti  
 **Version**: 1.2.0  
@@ -9,7 +9,7 @@ A PowerShell script that automatically archives emails older than a specified nu
 ## Features
 
 - **Automatic Email Archiving**: Moves emails older than X days from Inbox to Archive folders
-- **Organized Structure**: Creates year/month folder hierarchy (e.g., `Archive\2024\2024-12`)
+- **Organized Structure**: Creates year/month folder hierarchy (e.g., `Archive\2025\2025-01`)
 - **Dry-Run Mode**: Test the script safely without actually moving emails
 - **Comprehensive Logging**: Detailed logs of all operations with timestamps
 - **Multi-Account Support**: Works with multiple Outlook accounts/stores
@@ -38,6 +38,7 @@ A PowerShell script that automatically archives emails older than a specified nu
 4. The script is ready to run - no additional installation required
 
 **Files included:**
+
 - `OutlookAutoArchive.exe` - Executable version (recommended for most users)
 - `Run_OutlookAutoArchive.bat` - Simple batch file to run the executable
 - `OutlookAutoArchive.ps1` - PowerShell script version
@@ -107,8 +108,8 @@ Configure a Gmail label in your `config.json` file.
 
 **The script will automatically create**:
 
-- Year folders (e.g., "2024", "2023")
-- Month folders (e.g., "2024-12", "2024-11")
+- Year folders (e.g., "2025", "2024")
+- Month folders (e.g., "2025-01", "2024-12")
 
 ## Archive Structure
 
@@ -116,12 +117,12 @@ The script creates an organized folder structure:
 
 ```
 Archive/
-├── 2024/
-│   ├── 2024-01/
-│   ├── 2024-02/
+├── 2025/
+│   ├── 2025-01/
+│   ├── 2025-02/
 │   └── ...
-├── 2023/
-│   ├── 2023-12/
+├── 2024/
+│   ├── 2024-12/
 │   └── ...
 ```
 
@@ -132,17 +133,20 @@ Archive/
 The easiest way to run the script is using the provided executable:
 
 **Method A: Double-click the batch file**
+
 ```
 Run_OutlookAutoArchive.bat
 ```
 
 **Method B: Run the executable directly**
+
 ```powershell
 # Run the executable (it will use config.json automatically)
 .\OutlookAutoArchive.exe
 ```
 
 **Benefits of using the executable:**
+
 - No PowerShell execution policy issues
 - Double-click to run
 - Works with Windows Task Scheduler
@@ -166,6 +170,7 @@ Run_OutlookAutoArchive.bat
 To run automatically, create a Windows Task Scheduler task:
 
 #### Using the Executable (Recommended):
+
 1. Open Task Scheduler
 2. Create Basic Task
 3. Set trigger (e.g., daily at 2 AM)
@@ -174,6 +179,7 @@ To run automatically, create a Windows Task Scheduler task:
 6. Arguments: (leave empty)
 
 #### Using PowerShell Script:
+
 1. Open Task Scheduler
 2. Create Basic Task
 3. Set trigger (e.g., daily at 2 AM)
@@ -253,7 +259,7 @@ If you're using Gmail with Outlook, you can create custom labels for archiving:
    - This ensures the label appears in Outlook
 
 4. **Label Structure** (Optional):
-   - You can create nested labels like "OutlookArchive/2024/2024-12"
+   - You can create nested labels like "OutlookArchive/2025/2025-01"
    - The script will automatically create year/month sub-labels
 
 #### In Outlook:
