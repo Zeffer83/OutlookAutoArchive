@@ -1,19 +1,28 @@
 <#
 .SYNOPSIS
-  Moves emails older than X days from Inbox to Archive\<yyyy>\<yyyy-MM>.
-  Dry-run mode enabled — flip $DryRun to $false for live moves.
+  Auto-archive Outlook emails with options from config.json
 #>
 
 Add-Type -AssemblyName Microsoft.Office.Interop.Outlook
 $outlook = New-Object -ComObject Outlook.Application
 $namespace = $outlook.GetNamespace("MAPI")
 
-# === CONFIG ===
-$RetentionDays = 14
-$DryRun = $true   # change to $false for live mode
-$LogPath = "$env:USERPROFILE\Documents\OutlookAutoArchiveLogs"
+# === Load config ===
+$configPath = Join-Path $PSScriptRoot 'config.json'
+if (-not (Test-Path $configPath)) {
+    Write-Error "Config file not found: $configPath"
+    exit 1
+}
+$config = Get-Content $configPath -Raw | ConvertFrom-Json
+
+# === Apply config settings ===
+$RetentionDays = [int]$config.RetentionDays
+$DryRun = [bool]$config.DryRun
+$LogPath = (Resolve-Path ($config.LogPath -replace '%USERPROFILE%', $env:USERPROFILE))
 $Today = Get-Date
 $CutOff = $Today.AddDays(-$RetentionDays)
+$GmailLabel = $config.GmailLabel
+$SkipRules = $config.SkipRules
 
 # === Setup logging ===
 if (-not (Test-Path $LogPath)) { New-Item -Path $LogPath -ItemType Directory | Out-Null }
@@ -28,7 +37,7 @@ function Get-ArchiveFolder {
 
     $archive = $null
 
-    # 1. Try Inbox\Archive
+    # Inbox\Archive
     try {
         $inbox = $store.Folders.Item("Inbox")
         if ($inbox -and ($inbox.Folders | Where-Object { $_.Name -eq "Archive" })) {
@@ -37,17 +46,17 @@ function Get-ArchiveFolder {
     }
     catch {}
 
-    # 2. Try root-level Archive
+    # Root-level Archive
     if (-not $archive) {
         if ($store.Folders | Where-Object { $_.Name -eq "Archive" }) {
             try { $archive = $store.Folders.Item("Archive") } catch {}
         }
     }
 
-    # 3. Gmail custom: look for "OutlookArchive" label
-    if (-not $archive) {
+    # Gmail custom label
+    if (-not $archive -and $GmailLabel) {
         foreach ($folder in $store.Folders) {
-            if ($folder.Name -eq "OutlookArchive") { $archive = $folder; break }
+            if ($folder.Name -eq $GmailLabel) { $archive = $folder; break }
         }
     }
 
@@ -119,16 +128,22 @@ foreach ($store in $namespace.Folders) {
 
         foreach ($mail in $sortedItems) {
 
-            # --- SKIP LOGIC FOR "Surinder (Shared)" ---
-            if ($store.Name -eq "Surinder (Shared)") {
-                if ($mail.Subject -match "Medite\s+offline\s+monitoring" -or
-                    $mail.Subject -match "Medite\s+Offline\s+Monitoring\s+Service") {
-                    "[$($store.Name)] SKIP: $($mail.ReceivedTime.ToString('yyyy-MM-dd')) : $($mail.Subject)" |
-                    Tee-Object -FilePath $LogFile -Append
-                    continue
+            # Apply skip rules from config
+            $skipMatch = $false
+            foreach ($rule in $SkipRules) {
+                if ($store.Name -eq $rule.Mailbox) {
+                    foreach ($subj in $rule.Subjects) {
+                        if ($mail.Subject -match [regex]::Escape($subj)) {
+                            "[$($store.Name)] SKIP: $($mail.ReceivedTime.ToString('yyyy-MM-dd')) : $($mail.Subject)" |
+                            Tee-Object -FilePath $LogFile -Append
+                            $skipMatch = $true
+                            break
+                        }
+                    }
                 }
+                if ($skipMatch) { break }
             }
-            # ------------------------------------------
+            if ($skipMatch) { continue }
 
             if ($mail.ReceivedTime -lt $CutOff) {
                 $logEntry = "[$($store.Name)] $($mail.ReceivedTime.ToString('yyyy-MM-dd')) : $($mail.Subject)"

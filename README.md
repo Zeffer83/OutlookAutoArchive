@@ -3,7 +3,7 @@
 A PowerShell script that automatically archives emails older than a specified number of days from your Outlook Inbox to organized year/month folders.
 
 **Author**: Ryan Zeffiretti  
-**Version**: 1.0.0  
+**Version**: 1.1.0  
 **License**: MIT
 
 ## Features
@@ -27,24 +27,38 @@ A PowerShell script that automatically archives emails older than a specified nu
 
 1. Clone or download this repository
 2. Ensure Outlook is installed and configured on your system
-3. The script is ready to run - no additional installation required
+3. Copy `config.example.json` to `config.json` and customize the settings
+4. The script is ready to run - no additional installation required
 
 ## Configuration
 
-Edit the configuration section in `OutlookAutoArchive.ps1`:
+The script uses a `config.json` file for configuration. Edit this file to customize the script behavior:
 
-```powershell
-# === CONFIG ===
-$RetentionDays = 14        # Keep emails in Inbox for 14 days
-$DryRun = $true           # Set to $false for live mode
-$LogPath = "$env:USERPROFILE\Documents\OutlookAutoArchiveLogs"
+```json
+{
+    "RetentionDays": 14,
+    "DryRun": true,
+    "LogPath": "%USERPROFILE%\\Documents\\OutlookAutoArchiveLogs",
+    "GmailLabel": "OutlookArchive",
+    "SkipRules": [
+        {
+            "Mailbox": "Surinder (Shared)",
+            "Subjects": [
+                "Medite offline monitoring",
+                "Medite Offline Monitoring Service"
+            ]
+        }
+    ]
+}
 ```
 
 ### Configuration Options
 
-- **`$RetentionDays`**: Number of days to keep emails in Inbox before archiving
-- **`$DryRun`**: When `$true`, shows what would be moved without actually moving emails
-- **`$LogPath`**: Directory where log files are stored
+- **`RetentionDays`**: Number of days to keep emails in Inbox before archiving
+- **`DryRun`**: When `true`, shows what would be moved without actually moving emails
+- **`LogPath`**: Directory where log files are stored (supports `%USERPROFILE%` variable)
+- **`GmailLabel`**: Custom Gmail label name for archive folder (optional)
+- **`SkipRules`**: Array of rules to skip specific emails by mailbox and subject patterns
 
 ## Usage
 
@@ -52,10 +66,11 @@ $LogPath = "$env:USERPROFILE\Documents\OutlookAutoArchiveLogs"
 
 ```powershell
 # Run in dry-run mode (recommended first time)
+# Edit config.json to set "DryRun": true
 .\OutlookAutoArchive.ps1
 
 # Run in live mode (actually moves emails)
-# First edit the script to set $DryRun = $false
+# Edit config.json to set "DryRun": false
 .\OutlookAutoArchive.ps1
 ```
 
@@ -122,19 +137,30 @@ Log entries include:
 
 ### Adding Skip Rules
 
-To skip specific emails, add conditions in the main processing loop:
+To skip specific emails, add rules to the `config.json` file:
 
-```powershell
-# Example: Skip emails with specific subjects
-if ($mail.Subject -match "Your Pattern Here") {
-    "SKIP: $($mail.Subject)" | Tee-Object -FilePath $LogFile -Append
-    continue
-}
+```json
+"SkipRules": [
+    {
+        "Mailbox": "Your Mailbox Name",
+        "Subjects": [
+            "Subject Pattern 1",
+            "Subject Pattern 2"
+        ]
+    }
+]
 ```
+
+The script will automatically skip emails that match the specified mailbox and subject patterns.
 
 ### Custom Archive Locations
 
-Modify the `Get-ArchiveFolder` function to support additional archive folder locations.
+The script automatically detects archive folders in multiple locations:
+- `Inbox\Archive`
+- Root-level `Archive`
+- Custom Gmail labels (configured via `GmailLabel` in config.json)
+
+To add support for additional locations, modify the `Get-ArchiveFolder` function in the script.
 
 ## Troubleshooting
 
@@ -143,6 +169,8 @@ Modify the `Get-ArchiveFolder` function to support additional archive folder loc
 1. **"Access Denied" errors**: Ensure Outlook is running and you have permissions
 2. **No Archive folder found**: Create an Archive folder in your Inbox or root level
 3. **Script won't run**: Check PowerShell execution policy: `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned`
+4. **Config file not found**: Ensure `config.json` exists in the same directory as the script
+5. **Invalid JSON**: Check that your `config.json` file has valid JSON syntax
 
 ### Debug Mode
 
@@ -210,4 +238,4 @@ If you encounter issues:
 
 ---
 
-**Note**: This script is designed for personal use and should be tested thoroughly in your environment before production use. This is version 1.0.0 and is provided "as-is" with no planned updates unless critical issues are found.
+**Note**: This script is designed for personal use and should be tested thoroughly in your environment before production use. This is version 1.1.0 and is provided "as-is" with no planned updates unless critical issues are found.

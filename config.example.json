@@ -1,0 +1,15 @@
+{
+    "RetentionDays": 14,
+    "DryRun": true,
+    "LogPath": "%USERPROFILE%\\Documents\\OutlookAutoArchiveLogs",
+    "GmailLabel": "OutlookArchive",
+    "SkipRules": [
+        {
+            "Mailbox": "Your Mailbox Name",
+            "Subjects": [
+                "Subject Pattern 1",
+                "Subject Pattern 2"
+            ]
+        }
+    ]
+}

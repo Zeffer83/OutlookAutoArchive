@@ -5,6 +5,22 @@ All notable changes to the Outlook Auto Archive Script will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2024-12-19
+
+**Author**: Ryan Zeffiretti
+
+### Changed
+- **External Configuration**: Moved from hardcoded settings to `config.json` file
+- **Enhanced Skip Rules**: Configurable skip rules via JSON configuration
+- **Improved Gmail Support**: Configurable Gmail label support
+- **Better Error Handling**: Enhanced error handling for missing config files
+
+### Added
+- **JSON Configuration**: All settings now configurable via `config.json`
+- **Flexible Skip Rules**: Support for multiple mailbox-specific skip rules
+- **Environment Variable Support**: `%USERPROFILE%` variable support in log paths
+- **Config Validation**: Basic JSON validation and error reporting
+
 ## [1.0.0] - 2024-12-19
 
 **Author**: Ryan Zeffiretti
@@ -73,4 +89,5 @@ By using this software, you acknowledge that:
 
 ## Version History
 
+- **1.1.0**: External configuration and enhanced skip rules (2024-12-19)
 - **1.0.0**: Initial release with core functionality (2024-12-19)

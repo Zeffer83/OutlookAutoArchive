@@ -40,3 +40,6 @@ Microsoft.PowerShell_profile.ps1
 
 # Archive folders (if accidentally created in repo)
 Archive/
+
+# Configuration files (may contain sensitive data)
+config.json
