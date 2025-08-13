@@ -3,7 +3,7 @@
 A PowerShell script that automatically archives emails older than a specified number of days from your Outlook Inbox to organized year/month folders. The script creates a structured archive system with folders organized by year and month (e.g., `Archive\2025\2025-08`) for easy email retrieval and management.
 
 **Author**: Ryan Zeffiretti  
-**Version**: 1.3.0  
+**Version**: 1.4.0  
 **License**: MIT
 
 ## Features
@@ -42,13 +42,15 @@ A PowerShell script that automatically archives emails older than a specified nu
 
 **Files included:**
 
-- `OutlookAutoArchive.exe` - **Executable version (recommended for most users)**
+- `OutlookAutoArchive.exe` - **Executable version (RECOMMENDED for all users)**
 - `Run_OutlookAutoArchive.bat` - **Simple batch file for easy execution**
 - `Run_OutlookAutoArchive_WithCheck.bat` - **Batch file with Outlook status check**
-- `OutlookAutoArchive.ps1` - PowerShell script version (for advanced users)
 - `Setup_OutlookStartup_Task.ps1` - **Setup script for Outlook startup tasks**
 - `config.example.json` - Example configuration file
 - `config.json` - Your configuration file (auto-created on first run)
+
+**Source Code (for developers only):**
+- `OutlookAutoArchive.ps1` - PowerShell script source code (for developers and advanced users)
 
 **First Run Setup:**
 
@@ -168,7 +170,7 @@ Run_OutlookAutoArchive.bat
 - No need to open PowerShell
 - User-friendly batch file included
 
-### Option 2: Using PowerShell Script
+### Option 2: Using PowerShell Script (Developers Only)
 
 ```powershell
 # Run in dry-run mode (recommended first time)
@@ -179,6 +181,8 @@ Run_OutlookAutoArchive.bat
 # Edit config.json to set "DryRun": false
 .\OutlookAutoArchive.ps1
 ```
+
+**Note**: The PowerShell script is provided for developers and advanced users. Most users should use the executable version.
 
 ### Scheduled Execution
 
@@ -424,4 +428,4 @@ If you encounter issues:
 
 ---
 
-**Note**: This script is designed for personal use and should be tested thoroughly in your environment before production use. This is version 1.3.0 and is provided "as-is" with no planned updates unless critical issues are found.
+**Note**: This script is designed for personal use and should be tested thoroughly in your environment before production use. This is version 1.4.0 and is provided "as-is" with no planned updates unless critical issues are found.

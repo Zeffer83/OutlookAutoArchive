@@ -5,6 +5,33 @@ All notable changes to the Outlook Auto Archive Script will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2025-08-13
+
+**Author**: Ryan Zeffiretti
+
+### Fixed
+
+- **Path Binding Errors**: Resolved "cannot bind argument to parameter path" errors
+- **Null Path Issues**: Fixed null path binding errors in logging setup
+- **JSON Parsing**: Improved config.json handling and error recovery
+- **Executable Console Mode**: Fixed popup windows by using proper console mode
+- **Log Path Processing**: Enhanced handling of environment variables and backslashes
+
+### Changed
+
+- **Enhanced Error Handling**: More robust error handling throughout the script
+- **Improved Logging**: Better logging system with safe file writing
+- **Path Resolution**: Better path handling for both script and executable modes
+- **User Experience**: Emphasized executable usage for end users
+- **Documentation**: Updated to clarify executable vs source code usage
+
+### Technical Details
+
+- **Safe Logging**: New `Write-Log` function with proper error handling
+- **Path Detection**: Improved script directory detection for executables
+- **JSON Validation**: Better error messages for configuration issues
+- **Console Mode**: Proper console application build for better user experience
+
 ## [1.3.0] - 2025-08-13
 
 **Author**: Ryan Zeffiretti
@@ -146,6 +173,7 @@ By using this software, you acknowledge that:
 
 ## Version History
 
+- **1.4.0**: Bug fixes and improved error handling (2025-08-13)
 - **1.3.0**: Outlook status check and startup integration (2025-08-13)
 - **1.2.0**: Executable version and enhanced user experience (2025-08-13)
 - **1.1.0**: External configuration and enhanced skip rules (2025-08-13)
