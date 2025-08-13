@@ -5,7 +5,7 @@ All notable changes to the Outlook Auto Archive Script will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.2.0] - 2025-01-13
+## [1.2.0] - 2025-08-13
 
 **Author**: Ryan Zeffiretti
 
@@ -30,7 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Compatibility**: Works on Windows with Outlook installed
 - **Configuration**: Still uses `config.json` for all settings
 
-## [1.1.0] - 2025-01-13
+## [1.1.0] - 2025-08-13
 
 **Author**: Ryan Zeffiretti
 
@@ -48,7 +48,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Environment Variable Support**: `%USERPROFILE%` variable support in log paths
 - **Config Validation**: Basic JSON validation and error reporting
 
-## [1.0.0] - 2025-01-13
+## [1.0.0] - 2025-08-13
 
 **Author**: Ryan Zeffiretti
 
@@ -70,7 +70,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `Inbox\Archive`
   - Root-level `Archive`
   - Gmail-style `OutlookArchive`
-- **Organized Structure**: Creates year/month hierarchy (e.g., `Archive\2025\2025-01`)
+- **Organized Structure**: Creates year/month hierarchy (e.g., `Archive\2025\2025-08`)
 - **Safety Features**: Dry-run mode, duplicate prevention, comprehensive logging
 - **Custom Skip Rules**: Built-in logic to skip monitoring alerts and other specific emails
 
@@ -120,6 +120,6 @@ By using this software, you acknowledge that:
 
 ## Version History
 
-- **1.2.0**: Executable version and enhanced user experience (2025-01-13)
-- **1.1.0**: External configuration and enhanced skip rules (2025-01-13)
-- **1.0.0**: Initial release with core functionality (2025-01-13)
+- **1.2.0**: Executable version and enhanced user experience (2025-08-13)
+- **1.1.0**: External configuration and enhanced skip rules (2025-08-13)
+- **1.0.0**: Initial release with core functionality (2025-08-13)

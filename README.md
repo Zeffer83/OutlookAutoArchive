@@ -1,6 +1,6 @@
 # Outlook Auto Archive Script
 
-A PowerShell script that automatically archives emails older than a specified number of days from your Outlook Inbox to organized year/month folders. The script creates a structured archive system with folders organized by year and month (e.g., `Archive\2025\2025-01`) for easy email retrieval and management.
+A PowerShell script that automatically archives emails older than a specified number of days from your Outlook Inbox to organized year/month folders. The script creates a structured archive system with folders organized by year and month (e.g., `Archive\2025\2025-08`) for easy email retrieval and management.
 
 **Author**: Ryan Zeffiretti  
 **Version**: 1.2.0  
@@ -9,7 +9,7 @@ A PowerShell script that automatically archives emails older than a specified nu
 ## Features
 
 - **Automatic Email Archiving**: Moves emails older than X days from Inbox to Archive folders
-- **Organized Structure**: Creates year/month folder hierarchy (e.g., `Archive\2025\2025-01`)
+- **Organized Structure**: Creates year/month folder hierarchy (e.g., `Archive\2025\2025-08`)
 - **Dry-Run Mode**: Test the script safely without actually moving emails
 - **Comprehensive Logging**: Detailed logs of all operations with timestamps
 - **Multi-Account Support**: Works with multiple Outlook accounts/stores
@@ -109,7 +109,7 @@ Configure a Gmail label in your `config.json` file.
 **The script will automatically create**:
 
 - Year folders (e.g., "2025", "2024")
-- Month folders (e.g., "2025-01", "2024-12")
+- Month folders (e.g., "2025-08", "2025-07")
 
 ## Archive Structure
 
@@ -118,8 +118,8 @@ The script creates an organized folder structure:
 ```
 Archive/
 ├── 2025/
-│   ├── 2025-01/
-│   ├── 2025-02/
+│   ├── 2025-08/
+│   ├── 2025-07/
 │   └── ...
 ├── 2024/
 │   ├── 2024-12/
@@ -259,7 +259,7 @@ If you're using Gmail with Outlook, you can create custom labels for archiving:
    - This ensures the label appears in Outlook
 
 4. **Label Structure** (Optional):
-   - You can create nested labels like "OutlookArchive/2025/2025-01"
+   - You can create nested labels like "OutlookArchive/2025/2025-08"
    - The script will automatically create year/month sub-labels
 
 #### In Outlook:
