@@ -9,11 +9,44 @@ $namespace = $outlook.GetNamespace("MAPI")
 
 # === Load config ===
 $configPath = Join-Path $PSScriptRoot 'config.json'
+$exampleConfigPath = Join-Path $PSScriptRoot 'config.example.json'
+
+# Auto-create config file if missing
 if (-not (Test-Path $configPath)) {
-    Write-Error "Config file not found: $configPath"
+    Write-Host "Config file not found. Attempting to create one..."
+    
+    # Try to copy from example first
+    if (Test-Path $exampleConfigPath) {
+        Copy-Item $exampleConfigPath $configPath
+        Write-Host "Created config.json from config.example.json"
+    } else {
+        # Create default config
+        $defaultConfig = @{
+            RetentionDays = 14
+            DryRun = $true
+            LogPath = "%USERPROFILE%\Documents\OutlookAutoArchiveLogs"
+            GmailLabel = "OutlookArchive"
+            SkipRules = @(
+                @{
+                    Mailbox = "Your Mailbox Name"
+                    Subjects = @("Subject Pattern 1", "Subject Pattern 2")
+                }
+            )
+        }
+        
+        $defaultConfig | ConvertTo-Json -Depth 3 | Out-File $configPath -Encoding UTF8
+        Write-Host "Created default config.json with safe settings (DryRun = true)"
+        Write-Host "Please review and edit config.json before running in live mode"
+    }
+}
+
+try {
+    $config = Get-Content $configPath -Raw | ConvertFrom-Json
+} catch {
+    Write-Error "Invalid JSON in config.json: $_"
+    Write-Host "Please check your config.json file for syntax errors"
     exit 1
 }
-$config = Get-Content $configPath -Raw | ConvertFrom-Json
 
 # === Apply config settings ===
 $RetentionDays = [int]$config.RetentionDays
