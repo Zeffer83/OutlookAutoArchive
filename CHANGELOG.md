@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.0.0] - 2024-12-19
 
+**Author**: Ryan Zeffiretti
+
 ### Added
 - Initial release of Outlook Auto Archive Script
 - Automatic email archiving with configurable retention period

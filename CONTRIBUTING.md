@@ -1,5 +1,7 @@
 # Contributing to Outlook Auto Archive Script
 
+**Author**: Ryan Zeffiretti
+
 Thank you for your interest in the Outlook Auto Archive Script! This document provides guidelines for contributors, though please note this is an "as-is" script with limited maintenance.
 
 ## How to Contribute

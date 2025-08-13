@@ -2,6 +2,10 @@
 
 A PowerShell script that automatically archives emails older than a specified number of days from your Outlook Inbox to organized year/month folders.
 
+**Author**: Ryan Zeffiretti  
+**Version**: 1.0.0  
+**License**: MIT
+
 ## Features
 
 - **Automatic Email Archiving**: Moves emails older than X days from Inbox to Archive folders
@@ -100,6 +104,7 @@ Logs are stored in: `%USERPROFILE%\Documents\OutlookAutoArchiveLogs\`
 Each run creates a timestamped log file: `ArchiveLog_YYYY-MM-DD_HH-mm-ss.txt`
 
 Log entries include:
+
 - Configuration settings
 - Folder creation operations
 - Email movement details
@@ -148,6 +153,7 @@ Enable verbose logging by adding `-Verbose` to PowerShell commands or modifying 
 This is an "as-is" script created for personal use. While contributions are welcome, please note that this project is not actively maintained beyond personal needs. If you find issues or want to add features, feel free to fork and modify for your own use.
 
 If you do find critical bugs, you can:
+
 1. Fork the repository
 2. Fix the issue
 3. Submit a pull request (though response may be limited)
@@ -155,6 +161,8 @@ If you do find critical bugs, you can:
 ## License
 
 This project is open source and available under the [MIT License](LICENSE).
+
+**Author**: Ryan Zeffiretti (rzeffiretti@gmail.com)
 
 ## Disclaimer
 
@@ -165,6 +173,7 @@ This script modifies your Outlook email structure. Always test in dry-run mode f
 ## Support
 
 If you encounter issues:
+
 1. Check the log files for detailed error messages
 2. Ensure Outlook is properly configured
 3. Verify you have necessary permissions
