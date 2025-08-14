@@ -1070,3 +1070,228 @@ foreach ($account in $namespace.Folders) {
 
 $completionMessage = "=== Completed at $(Get-Date) ==="
 Write-Log -Message $completionMessage -LogFile $LogFile
+
+# === Post-Dry-Run User Interaction ===
+if ($DryRun) {
+    Write-Host ""
+    Write-Host "=== Dry-Run Completed Successfully! ===" -ForegroundColor Green
+    Write-Host ""
+    Write-Host "The dry-run has finished processing your emails." -ForegroundColor White
+    Write-Host "Log file created: $LogFile" -ForegroundColor Cyan
+    Write-Host ""
+    Write-Host "Next steps:" -ForegroundColor Yellow
+    Write-Host "1. Check the log file to review what emails would be archived" -ForegroundColor White
+    Write-Host "2. Verify the archive folder structure is correct" -ForegroundColor White
+    Write-Host "3. Make any adjustments to config.json if needed" -ForegroundColor White
+    Write-Host ""
+    
+    # Ask user if they want to switch to live mode
+    Write-Host "Would you like to switch to live mode and run the actual archiving now?" -ForegroundColor Cyan
+    Write-Host "This will move the emails that were identified in the dry-run." -ForegroundColor White
+    Write-Host ""
+    Write-Host "Options:" -ForegroundColor Yellow
+    Write-Host "1. Yes - Switch to live mode and archive emails now" -ForegroundColor White
+    Write-Host "2. No - Exit and run manually later" -ForegroundColor White
+    Write-Host ""
+    
+    do {
+        $liveModeChoice = Read-Host "Enter choice (1-2)"
+        if ($liveModeChoice -match '^[1-2]$') {
+            break
+        }
+        Write-Host "Please enter 1 or 2." -ForegroundColor Red
+    } while ($true)
+    
+    if ($liveModeChoice -eq '1') {
+        Write-Host ""
+        Write-Host "=== Switching to Live Mode ===" -ForegroundColor Cyan
+        Write-Host "Updating config.json to set DryRun = false..." -ForegroundColor White
+        
+        try {
+            # Update config to live mode
+            $config.DryRun = $false
+            $config | ConvertTo-Json -Depth 3 | Out-File $configPath -Encoding UTF8
+            Write-Host "✅ Configuration updated to live mode" -ForegroundColor Green
+            
+            Write-Host ""
+            Write-Host "⚠️  WARNING: This will now move emails to the archive folders!" -ForegroundColor Red
+            Write-Host "Make sure you've reviewed the dry-run results and are ready to proceed." -ForegroundColor Yellow
+            Write-Host ""
+            
+            $confirmLive = Read-Host "Type 'YES' to confirm you want to proceed with live archiving"
+            if ($confirmLive -eq 'YES') {
+                Write-Host ""
+                Write-Host "=== Starting Live Archive Process ===" -ForegroundColor Green
+                Write-Host "Processing emails in live mode..." -ForegroundColor White
+                Write-Host ""
+                
+                # Update variables for live mode
+                $DryRun = $false
+                
+                # Create new log file for live run
+                $liveLogFile = Join-Path $LogPath ("ArchiveLog_LIVE_" + $Today.ToString("yyyy-MM-dd_HH-mm-ss") + ".txt")
+                "=== Outlook Auto-Archive LIVE RUN ===" | Out-File -FilePath $liveLogFile -Encoding UTF8
+                "Retention: $RetentionDays days" | Out-File -FilePath $liveLogFile -Append -Encoding UTF8
+                "Cutoff: $CutOff" | Out-File -FilePath $liveLogFile -Append -Encoding UTF8
+                "Started at: $(Get-Date)" | Out-File -FilePath $liveLogFile -Append -Encoding UTF8
+                
+                Write-Host "Live mode log file: $liveLogFile" -ForegroundColor Cyan
+                Write-Host ""
+                
+                # Re-run the archive process in live mode
+                $liveEmailsProcessed = 0
+                $liveEmailsMoved = 0
+                
+                foreach ($account in $namespace.Folders) {
+                    try {
+                        Write-Host "Processing account: $($account.Name)" -ForegroundColor Cyan
+                        
+                        # Skip non-email account types
+                        $skipAccountTypes = @("Internet Calendars", "SharePoint Lists", "Public Folders", "Calendar", "Contacts", "Tasks", "Notes")
+                        if ($skipAccountTypes -contains $account.Name) {
+                            $logMessage = "[$($account.Name)] Skipping non-email account type."
+                            Write-Log -Message $logMessage -LogFile $liveLogFile
+                            continue
+                        }
+                        
+                        $archiveRoot = Get-ArchiveFolder $account
+                        if (-not $archiveRoot) {
+                            $logMessage = "[$($account.Name)] No 'Archive' folder found, skipping."
+                            Write-Log -Message $logMessage -LogFile $liveLogFile
+                            continue
+                        }
+
+                        $year = $Today.ToString("yyyy")
+                        $month = $Today.ToString("yyyy-MM")
+
+                        # Create year and month folders for live mode
+                        $yearFolder = $archiveRoot.Folders | Where-Object { $_.Name -eq $year }
+                        if (-not $yearFolder) {
+                            $archiveRoot.Folders.Add($year) | Out-Null
+                            $yearFolder = $archiveRoot.Folders | Where-Object { $_.Name -eq $year }
+                            Write-Host "  Created year folder: $year" -ForegroundColor Green
+                        }
+
+                        $monthFolder = $yearFolder.Folders | Where-Object { $_.Name -eq $month }
+                        if (-not $monthFolder) {
+                            $yearFolder.Folders.Add($month) | Out-Null
+                            $monthFolder = $yearFolder.Folders | Where-Object { $_.Name -eq $month }
+                            Write-Host "  Created month folder: $month" -ForegroundColor Green
+                        }
+
+                        # Safe Inbox retrieval
+                        $inbox = $null
+                        try { $inbox = $account.Folders.Item("Inbox") } catch {}
+                        if (-not $inbox) {
+                            $logMessage = "[$($account.Name)] No Inbox folder, skipping message scan."
+                            Write-Log -Message $logMessage -LogFile $liveLogFile
+                            continue
+                        }
+
+                        # Get static array of MailItems
+                        $rawItems = @()
+                        try {
+                            $rawItems = @($inbox.Items | Where-Object { $_.Class -eq 43 })
+                        }
+                        catch {
+                            $logMessage = "[$($account.Name)] Could not retrieve mail items: $_"
+                            Write-Log -Message $logMessage -LogFile $liveLogFile
+                            continue
+                        }
+
+                        if ($rawItems.Count -eq 0) {
+                            $logMessage = "[$($account.Name)] No messages found to process."
+                            Write-Log -Message $logMessage -LogFile $liveLogFile
+                            continue
+                        }
+
+                        # Deduplicate by Subject+DateTime composite key, then sort
+                        $seenKeys = @{}
+                        $deduped = foreach ($mail in $rawItems) {
+                            $key = "$($mail.Subject)|$($mail.ReceivedTime.ToString('o'))"
+                            if (-not $seenKeys.ContainsKey($key)) {
+                                $seenKeys[$key] = $true
+                                $mail
+                            }
+                        }
+                        $sortedItems = $deduped | Sort-Object ReceivedTime
+
+                        foreach ($mail in $sortedItems) {
+                            $liveEmailsProcessed++
+
+                            # Apply skip rules from config
+                            $skipMatch = $false
+                            foreach ($rule in $SkipRules) {
+                                if ($account.Name -eq $rule.Mailbox) {
+                                    foreach ($subj in $rule.Subjects) {
+                                        if ($mail.Subject -match [regex]::Escape($subj)) {
+                                            $skipMessage = "[$($account.Name)] SKIP: $($mail.ReceivedTime.ToString('yyyy-MM-dd')) : $($mail.Subject)"
+                                            Write-Log -Message $skipMessage -LogFile $liveLogFile
+                                            $skipMatch = $true
+                                            break
+                                        }
+                                    }
+                                }
+                                if ($skipMatch) { break }
+                            }
+                            if ($skipMatch) { continue }
+
+                            if ($mail.ReceivedTime -lt $CutOff) {
+                                try {
+                                    $mail.Move($monthFolder) | Out-Null
+                                    $movedMessage = "MOVED: [$($account.Name)] $($mail.ReceivedTime.ToString('yyyy-MM-dd')) : $($mail.Subject)"
+                                    Write-Log -Message $movedMessage -LogFile $liveLogFile
+                                    $liveEmailsMoved++
+                                    
+                                    # Show progress every 10 emails
+                                    if ($liveEmailsMoved % 10 -eq 0) {
+                                        Write-Host "  Moved $liveEmailsMoved emails so far..." -ForegroundColor Green
+                                    }
+                                }
+                                catch {
+                                    $errorMessage = "ERROR MOVING: [$($account.Name)] $($mail.ReceivedTime.ToString('yyyy-MM-dd')) : $($mail.Subject) - $_"
+                                    Write-Log -Message $errorMessage -LogFile $liveLogFile
+                                    Write-Host "  ❌ Error moving email: $_" -ForegroundColor Red
+                                }
+                            }
+                        }
+
+                    }
+                    catch {
+                        $errorMessage = "[$($account.Name)] Error: $_"
+                        Write-Log -Message $errorMessage -LogFile $liveLogFile
+                    }
+                }
+                
+                $liveCompletionMessage = "=== Live Archive Completed at $(Get-Date) ==="
+                Write-Log -Message $liveCompletionMessage -LogFile $liveLogFile
+                Write-Log -Message "Total emails processed: $liveEmailsProcessed" -LogFile $liveLogFile
+                Write-Log -Message "Total emails moved: $liveEmailsMoved" -LogFile $liveLogFile
+                
+                Write-Host ""
+                Write-Host "=== Live Archive Completed Successfully! ===" -ForegroundColor Green
+                Write-Host "Total emails processed: $liveEmailsProcessed" -ForegroundColor White
+                Write-Host "Total emails moved: $liveEmailsMoved" -ForegroundColor Green
+                Write-Host "Live mode log file: $liveLogFile" -ForegroundColor Cyan
+                Write-Host ""
+                Write-Host "✅ Your emails have been successfully archived!" -ForegroundColor Green
+                Write-Host "You can find them in your Outlook archive folders organized by year/month." -ForegroundColor White
+                
+            } else {
+                Write-Host ""
+                Write-Host "Live archiving cancelled by user." -ForegroundColor Yellow
+                Write-Host "You can run the script again later when you're ready." -ForegroundColor White
+            }
+            
+        } catch {
+            Write-Host "❌ Error updating configuration: $_" -ForegroundColor Red
+            Write-Host "You can manually edit config.json and set 'DryRun': false" -ForegroundColor Yellow
+        }
+    } else {
+        Write-Host ""
+        Write-Host "Exiting without switching to live mode." -ForegroundColor Yellow
+        Write-Host "To run in live mode later:" -ForegroundColor White
+        Write-Host "1. Edit config.json and set 'DryRun': false" -ForegroundColor Gray
+        Write-Host "2. Run the script again" -ForegroundColor Gray
+    }
+}
