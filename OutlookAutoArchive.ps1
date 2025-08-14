@@ -47,7 +47,7 @@ if (-not (Test-Path $configPath)) {
         $defaultConfig = @{
             RetentionDays = 14
             DryRun        = $true
-            LogPath       = "%USERPROFILE%\Documents\OutlookAutoArchiveLogs"
+            LogPath       = ".\Logs"
             GmailLabel    = "OutlookArchive"
             OnFirstRun    = $true
             ArchiveFolders = @{}
@@ -627,16 +627,22 @@ $DryRun = [bool]$config.DryRun
 # Process log path with proper error handling
 $rawLogPath = $config.LogPath
 if ([string]::IsNullOrEmpty($rawLogPath)) {
-    $rawLogPath = "%USERPROFILE%\Documents\OutlookAutoArchiveLogs"
+    $rawLogPath = ".\Logs"
     Write-Host "LogPath was empty, using default: $rawLogPath"
 }
 
-# Handle both escaped and unescaped backslashes
-$LogPath = $rawLogPath -replace '%USERPROFILE%', $env:USERPROFILE
-$LogPath = $LogPath -replace '\\\\', '\'  # Fix double backslashes
+# Handle relative paths and environment variables
+if ($rawLogPath -like ".\*") {
+    # Relative path - make it absolute based on script location
+    $LogPath = Join-Path $scriptDir $rawLogPath.Substring(2)
+} else {
+    # Handle both escaped and unescaped backslashes for absolute paths
+    $LogPath = $rawLogPath -replace '%USERPROFILE%', $env:USERPROFILE
+    $LogPath = $LogPath -replace '\\\\', '\'  # Fix double backslashes
+}
 
 if ([string]::IsNullOrEmpty($LogPath)) {
-    $LogPath = "$env:USERPROFILE\Documents\OutlookAutoArchiveLogs"
+    $LogPath = Join-Path $scriptDir "Logs"
     Write-Host "LogPath processing failed, using fallback: $LogPath"
 }
 

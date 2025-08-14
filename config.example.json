@@ -1,7 +1,7 @@
 {
     "RetentionDays": 14,
     "DryRun": true,
-    "LogPath": "%USERPROFILE%\\Documents\\OutlookAutoArchiveLogs",
+    "LogPath": ".\\Logs",
     "GmailLabel": "OutlookArchive",
     "OnFirstRun": true,
     "ArchiveFolders": {},

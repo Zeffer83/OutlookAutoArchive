@@ -3,7 +3,7 @@
 A PowerShell script that automatically archives emails older than a specified number of days from your Outlook Inbox to organized year/month folders. The script creates a structured archive system with folders organized by year and month (e.g., `Archive\2025\2025-08`) for easy email retrieval and management.
 
 **Author**: Ryan Zeffiretti  
-**Version**: 2.0.0  
+**Version**: 2.1.0  
 **License**: MIT
 
 ## Features
@@ -54,14 +54,34 @@ A PowerShell script that automatically archives emails older than a specified nu
 
 The script will automatically create a `config.json` file on first run if one doesn't exist. It will either copy from `config.example.json` if available, or create a default configuration with safe settings (DryRun = true).
 
+**Installation Options:**
+
+The script offers three installation locations during first-run setup:
+
+1. **User Documents** (`C:\Users\username\OutlookAutoArchive\`) - **Recommended**
+
+   - User-specific installation (no admin permissions required)
+   - Easy to find and manage
+   - Works with all Windows user types
+
+2. **Custom Location** - Choose your own folder
+
+   - Full control over installation path
+   - Useful for network drives or specific directories
+
+3. **Current Location** - Keep everything where it is now
+   - No file movement required
+   - Good for portable installations
+
 **Recommended Setup Process:**
 
 1. **Double-click** `OutlookAutoArchive.exe` to start the first-run setup
-2. **Follow the guided setup** to configure installation location, archive folders, and scheduling
-3. **Check the log files** in `%USERPROFILE%\Documents\OutlookAutoArchiveLogs\`
-4. **Review and edit** `config.json` if needed
-5. **Test again** to ensure everything works
-6. **Set up scheduled execution** (see Scheduled Execution section)
+2. **Choose installation location** (User Documents recommended)
+3. **Follow the guided setup** to configure archive folders and scheduling
+4. **Check the log files** in the `Logs` folder within your installation directory
+5. **Review and edit** `config.json` if needed
+6. **Test again** to ensure everything works
+7. **Set up scheduled execution** (see Scheduled Execution section)
 
 ## Configuration
 
@@ -71,7 +91,7 @@ The script uses a `config.json` file for configuration. Edit this file to custom
 {
   "RetentionDays": 14,
   "DryRun": true,
-  "LogPath": "%USERPROFILE%\\Documents\\OutlookAutoArchiveLogs",
+  "LogPath": ".\\Logs",
   "GmailLabel": "OutlookArchive",
   "SkipRules": [
     {
@@ -92,11 +112,20 @@ The script uses a `config.json` file for configuration. Edit this file to custom
 - **`ArchiveFolders`**: Automatically populated with detected archive folder paths for faster access
 - **`SkipRules`**: Array of rules to skip specific emails by mailbox and subject patterns
 
-## ✅ **Status**: FULLY TESTED AND WORKING
+## ✅ **Status**: FULLY TESTED AND WORKING - Version 2.1.0
 
 This script has been thoroughly tested and is working perfectly with all email account types (Gmail, Outlook, Exchange, etc.). It successfully detects archive folders, processes emails, and applies skip rules correctly.
 
 **Test Results**: Successfully processed 1,000+ emails across multiple accounts with proper archive folder detection and skip rule functionality.
+
+**Latest Improvements (v2.1.0)**:
+
+- ✅ **Simplified Installation**: Removed Program Files option to eliminate permission issues
+- ✅ **User-Friendly Paths**: Changed User Documents path to `C:\Users\username\OutlookAutoArchive`
+- ✅ **Streamlined Choices**: Reduced installation options from 4 to 3 for clarity
+- ✅ **Enhanced Error Handling**: Improved Outlook connection and user feedback
+- ✅ **Better User Experience**: Cleaner setup process with better guidance
+- ✅ **Improved Logging**: Logs now stored in installation directory (no more OneDrive confusion)
 
 **New in v2.0.0**: Ultimate single-file experience! Removed all standalone setup scripts - everything is now integrated into the main executable with a complete guided first-run setup.
 
@@ -261,7 +290,7 @@ This creates a scheduled task that:
 
 ## Logging
 
-Logs are stored in: `%USERPROFILE%\Documents\OutlookAutoArchiveLogs\`
+Logs are stored in: `Logs\` folder within your installation directory
 
 Each run creates a timestamped log file: `ArchiveLog_YYYY-MM-DD_HH-mm-ss.txt`
 
@@ -441,4 +470,4 @@ If you encounter issues:
 
 ---
 
-**Note**: This script is designed for personal use and should be tested thoroughly in your environment before production use. This is version 2.0.0 and is provided "as-is" with no planned updates unless critical issues are found.
+**Note**: This script is designed for personal use and should be tested thoroughly in your environment before production use. This is version 2.1.0 and is provided "as-is" with no planned updates unless critical issues are found.
