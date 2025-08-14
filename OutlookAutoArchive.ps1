@@ -3,13 +3,20 @@
   Auto-archive Outlook emails with options from config.json
 #>
 
-# Version: 2.0.0
+# Version: 2.1.0
 # Author: Ryan Zeffiretti
 # Description: Auto-archive Outlook emails with options from config.json
 
-Add-Type -AssemblyName Microsoft.Office.Interop.Outlook
-$outlook = New-Object -ComObject Outlook.Application
-$namespace = $outlook.GetNamespace("MAPI")
+# Try to load Outlook Interop assembly, but don't fail if it's not available
+try {
+    Add-Type -AssemblyName Microsoft.Office.Interop.Outlook -ErrorAction SilentlyContinue
+} catch {
+    Write-Host "Note: Microsoft.Office.Interop.Outlook assembly not found, will use COM objects directly" -ForegroundColor Yellow
+}
+
+# Initialize Outlook objects (will be set up later when needed)
+$outlook = $null
+$namespace = $null
 
 # === Load config ===
 # Handle path for both script and executable
@@ -80,32 +87,27 @@ if ($config.OnFirstRun -eq $true) {
     Write-Host "This will be the permanent location for the application and its files." -ForegroundColor White
     Write-Host ""
     Write-Host "Recommended locations:" -ForegroundColor Yellow
-    Write-Host "1. Program Files (C:\Program Files\OutlookAutoArchive\) - System-wide installation" -ForegroundColor White
-    Write-Host "2. User Documents (C:\Users\$env:USERNAME\Documents\OutlookAutoArchive\) - User-specific installation" -ForegroundColor White
-    Write-Host "3. Custom location - Choose your own folder" -ForegroundColor White
-    Write-Host "4. Current location - Keep everything where it is now" -ForegroundColor White
+    Write-Host "1. User Documents (C:\Users\$env:USERNAME\OutlookAutoArchive\) - User-specific installation (Recommended)" -ForegroundColor White
+    Write-Host "2. Custom location - Choose your own folder" -ForegroundColor White
+    Write-Host "3. Current location - Keep everything where it is now" -ForegroundColor White
     Write-Host ""
     
     do {
-        $installChoice = Read-Host "Enter choice (1-4)"
-        if ($installChoice -match '^[1-4]$') {
+        $installChoice = Read-Host "Enter choice (1-3)"
+        if ($installChoice -match '^[1-3]$') {
             break
         }
-        Write-Host "Please enter 1, 2, 3, or 4." -ForegroundColor Red
+        Write-Host "Please enter 1, 2, or 3." -ForegroundColor Red
     } while ($true)
     
     $installPath = ""
     $currentLocation = if ($PSScriptRoot) { $PSScriptRoot } else { Get-Location }
     
     if ($installChoice -eq '1') {
-        $installPath = "C:\Program Files\OutlookAutoArchive"
-        Write-Host "Selected: Program Files installation" -ForegroundColor Green
+        $installPath = "$env:USERPROFILE\OutlookAutoArchive"
+        Write-Host "Selected: User Documents installation (Recommended)" -ForegroundColor Green
     }
     elseif ($installChoice -eq '2') {
-        $installPath = "$env:USERPROFILE\Documents\OutlookAutoArchive"
-        Write-Host "Selected: User Documents installation" -ForegroundColor Green
-    }
-    elseif ($installChoice -eq '3') {
         Write-Host ""
         Write-Host "Enter the full path where you want to install the application:" -ForegroundColor Cyan
         Write-Host "Example: C:\MyTools\OutlookAutoArchive" -ForegroundColor Gray
@@ -127,7 +129,7 @@ if ($config.OnFirstRun -eq $true) {
         } while ($true)
         Write-Host "Selected: Custom location ($installPath)" -ForegroundColor Green
     }
-    else {
+    elseif ($installChoice -eq '3') {
         $installPath = $currentLocation
         Write-Host "Selected: Current location ($installPath)" -ForegroundColor Green
     }
@@ -148,11 +150,6 @@ if ($config.OnFirstRun -eq $true) {
             $filesToCopy = @(
                 "OutlookAutoArchive.exe",
                 "OutlookAutoArchive.ps1", 
-                "Run_OutlookAutoArchive.bat",
-                "Run_OutlookAutoArchive_WithCheck.bat",
-                "Setup_Archive_Folders.bat",
-                "Setup_Archive_Folders.ps1",
-                "Setup_OutlookStartup_Task.ps1",
                 "config.example.json",
                 "README.md",
                 "CHANGELOG.md",
@@ -219,13 +216,13 @@ if ($config.OnFirstRun -eq $true) {
     
     # Connect to Outlook
     try {
-        Add-Type -AssemblyName Microsoft.Office.Interop.Outlook
         $outlook = New-Object -ComObject Outlook.Application
         $namespace = $outlook.GetNamespace("MAPI")
         Write-Host "✅ Connected to Outlook" -ForegroundColor Green
     }
     catch {
         Write-Host "❌ Failed to connect to Outlook: $_" -ForegroundColor Red
+        Write-Host "Make sure Outlook is running and you have the necessary permissions." -ForegroundColor Yellow
         exit 1
     }
     
@@ -621,100 +618,6 @@ if ($config.OnFirstRun -eq $true) {
          Write-Host ""
      Write-Host "=== Continuing with archive process... ===" -ForegroundColor Cyan
      Write-Host ""
-     
-     # Ask if user wants convenience .bat files created
-     Write-Host "Would you like to create convenience batch files for easy execution?" -ForegroundColor Cyan
-     Write-Host "These will create simple .bat files that you can double-click to run the archive script." -ForegroundColor White
-     Write-Host ""
-     Write-Host "Options:" -ForegroundColor Yellow
-     Write-Host "1. Create simple run script (Run_OutlookAutoArchive.bat)" -ForegroundColor White
-     Write-Host "2. Create run script with Outlook check (Run_OutlookAutoArchive_WithCheck.bat)" -ForegroundColor White
-     Write-Host "3. Create both convenience scripts" -ForegroundColor White
-     Write-Host "4. Skip creating batch files" -ForegroundColor White
-     Write-Host ""
-     
-     do {
-         $batchChoice = Read-Host "Enter choice (1-4)"
-         if ($batchChoice -match '^[1-4]$') {
-             break
-         }
-         Write-Host "Please enter 1, 2, 3, or 4." -ForegroundColor Red
-     } while ($true)
-     
-     if ($batchChoice -in @('1', '2', '3')) {
-         Write-Host ""
-         Write-Host "Creating convenience batch files..." -ForegroundColor Cyan
-         
-         # Create simple run script
-         if ($batchChoice -in @('1', '3')) {
-             $simpleBatContent = @"
-@echo off
-echo Starting Outlook Auto Archive...
-echo.
-echo This will run the archive script using your config.json settings.
-echo Make sure Outlook is running and you have created an Archive folder.
-echo.
-pause
-echo.
-OutlookAutoArchive.exe
-echo.
-echo Script completed. Check the log files for details.
-pause
-"@
-             $simpleBatPath = Join-Path $scriptDir "Run_OutlookAutoArchive.bat"
-             $simpleBatContent | Out-File -FilePath $simpleBatPath -Encoding ASCII
-             Write-Host "✅ Created Run_OutlookAutoArchive.bat" -ForegroundColor Green
-         }
-         
-         # Create run script with Outlook check
-         if ($batchChoice -in @('2', '3')) {
-             $checkBatContent = @"
-@echo off
-echo ========================================
-echo    Outlook Auto Archive - With Check
-echo ========================================
-echo.
-
-echo Checking if Outlook is running...
-tasklist /FI "IMAGENAME eq OUTLOOK.EXE" 2>NUL | find /I /N "OUTLOOK.EXE">NUL
-if "%ERRORLEVEL%"=="0" (
-    echo [OK] Outlook is running
-    echo.
-    echo Starting archive process...
-    echo.
-    OutlookAutoArchive.exe
-    echo.
-    echo Script completed. Check the log files for details.
-) else (
-    echo [ERROR] Outlook is not running!
-    echo.
-    echo The archive script requires Outlook to be running.
-    echo Please start Outlook and try again.
-    echo.
-    echo You can:
-    echo 1. Start Outlook manually
-    echo 2. Run this script again
-    echo 3. Set up a scheduled task that runs when Outlook starts
-    echo.
-)
-
-echo.
-echo Press any key to exit...
-pause >nul
-"@
-             $checkBatPath = Join-Path $scriptDir "Run_OutlookAutoArchive_WithCheck.bat"
-             $checkBatContent | Out-File -FilePath $checkBatPath -Encoding ASCII
-             Write-Host "✅ Created Run_OutlookAutoArchive_WithCheck.bat" -ForegroundColor Green
-         }
-         
-         Write-Host ""
-         Write-Host "Convenience batch files created successfully!" -ForegroundColor Green
-         Write-Host "You can now double-click these .bat files to run the archive script easily." -ForegroundColor White
-     }
-     else {
-         Write-Host ""
-         Write-Host "Skipped creating batch files. You can run OutlookAutoArchive.exe directly." -ForegroundColor Yellow
-     }
  }
 
 # === Apply config settings ===
@@ -798,6 +701,20 @@ catch {
     $LogFile = $null
 }
 
+# === Connect to Outlook for main processing ===
+if (-not $outlook -or -not $namespace) {
+    try {
+        $outlook = New-Object -ComObject Outlook.Application
+        $namespace = $outlook.GetNamespace("MAPI")
+        Write-Host "✅ Connected to Outlook for processing" -ForegroundColor Green
+    }
+    catch {
+        Write-Host "❌ Failed to connect to Outlook: $_" -ForegroundColor Red
+        Write-Host "Make sure Outlook is running and you have the necessary permissions." -ForegroundColor Yellow
+        exit 1
+    }
+}
+
 # Helper function for safe logging
 function Write-Log {
     param(
@@ -825,7 +742,7 @@ function Get-ArchiveFolder {
     $archive = $null
 
     # Check if we have a stored path for this account
-    if ($config.ArchiveFolders -and $config.ArchiveFolders.ContainsKey($account.Name)) {
+    if ($config.ArchiveFolders -and (Get-Member -InputObject $config.ArchiveFolders -Name $account.Name)) {
         $storedPath = $config.ArchiveFolders[$account.Name]
         
         if ($storedPath -like "GmailLabel:*") {
