@@ -32,6 +32,24 @@ A PowerShell script that automatically archives emails older than a specified nu
 - Microsoft Outlook installed and configured
 - Outlook COM Interop permissions
 
+## Windows Security
+
+### Automatic Unblocking
+
+The application automatically detects and attempts to unblock itself if Windows has blocked it due to being downloaded from the internet. This is a normal Windows security feature.
+
+### Manual Unblocking
+
+If automatic unblocking fails, you can manually unblock the executable:
+
+1. Right-click on `OutlookAutoArchive.exe`
+2. Select "Properties"
+3. Check the "Unblock" checkbox at the bottom of the dialog
+4. Click "OK"
+5. Run the application again
+
+This is a one-time process - once unblocked, the file will run normally on subsequent executions.
+
 ## Installation
 
 1. **Download the files** from this repository
@@ -392,6 +410,8 @@ If you're using Gmail with Outlook, you can create custom labels for archiving:
 1. **"Access Denied" errors**: Ensure Outlook is running and you have permissions
 2. **No Archive folder found**: Create an Archive folder in your Inbox or root level (see Setup Requirements section)
 3. **Executable won't run**:
+   - **Windows Security Blocking**: If Windows blocks the executable (common for downloaded files), the app will attempt to unblock it automatically
+   - If automatic unblocking fails, right-click the .exe file → Properties → Check "Unblock" → Click OK
    - Ensure you're running as administrator if needed
    - Check Windows Defender isn't blocking the executable
    - Try running the batch file instead
