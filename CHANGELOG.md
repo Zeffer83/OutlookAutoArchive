@@ -5,6 +5,22 @@ All notable changes to the Outlook Auto Archive Script will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.8.1] - 2025-08-14
+
+**Author**: Ryan Zeffiretti
+
+### Fixed
+
+- **ArchiveFolders Not Saving**: Fixed issue where discovered archive folder paths were not being saved to config.json
+- **Unexpected Console Output**: Removed duplicate console messages that appeared during setup
+- **Configuration Persistence**: Archive folders are now properly stored for future runs
+
+### Technical Details
+
+- **ArchiveFolders Initialization**: Removed redundant initialization that was overwriting discovered folders
+- **Console Output Cleanup**: Streamlined setup messages to avoid confusion
+- **Config Save Timing**: Archive folder discovery now properly persists to configuration file
+
 ## [2.8.0] - 2025-08-14
 
 **Author**: Ryan Zeffiretti

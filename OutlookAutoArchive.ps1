@@ -3,7 +3,7 @@
   Auto-archive Outlook emails with options from config.json
 #>
 
-# Version: 2.8.0
+# Version: 2.8.1
 # Author: Ryan Zeffiretti
 # Description: Auto-archive Outlook emails with options from config.json
 
@@ -580,11 +580,6 @@ Version 2.2.0 - Professional metadata and Windows security handling
         $config.MonitoringInterval = $monitoringInterval
     }
     
-    # Initialize ArchiveFolders if it doesn't exist
-    if (-not $config.ArchiveFolders) {
-        $config.ArchiveFolders = @{}
-    }
-    
     # Save updated config with discovered archive folders
     try {
         $config | ConvertTo-Json -Depth 3 | Out-File $configPath -Encoding UTF8
@@ -722,6 +717,7 @@ Version 2.2.0 - Professional metadata and Windows security handling
             Write-Host ""
             Write-Host "The task will start when the computer starts and run every 4 hours." -ForegroundColor Green
             Write-Host "The script will gracefully skip runs when Outlook is not available." -ForegroundColor Green
+            Write-Host ""
         }
         else {
             try {
