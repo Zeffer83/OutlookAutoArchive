@@ -18,6 +18,43 @@ try {
 $outlook = $null
 $namespace = $null
 
+# === Windows Unblocking ===
+# Check if this executable was downloaded from the internet and needs to be unblocked
+try {
+    $currentExePath = if ($PSScriptRoot) { Join-Path $PSScriptRoot "OutlookAutoArchive.exe" } else { Join-Path (Get-Location) "OutlookAutoArchive.exe" }
+    
+    if (Test-Path $currentExePath) {
+        $zoneInfo = Get-ItemProperty -Path $currentExePath -Name Zone.Identifier -ErrorAction SilentlyContinue
+        if ($zoneInfo -and $zoneInfo.'Zone.Identifier') {
+            Write-Host ""
+            Write-Host "⚠️  Windows has blocked this executable because it was downloaded from the internet." -ForegroundColor Yellow
+            Write-Host "Attempting to unblock the file automatically..." -ForegroundColor Cyan
+            
+            try {
+                Unblock-File -Path $currentExePath -ErrorAction Stop
+                Write-Host "✅ Successfully unblocked the executable!" -ForegroundColor Green
+                Write-Host "You can now run the application normally." -ForegroundColor White
+            }
+            catch {
+                Write-Host "❌ Could not automatically unblock the file." -ForegroundColor Red
+                Write-Host ""
+                Write-Host "To unblock manually:" -ForegroundColor Cyan
+                Write-Host "1. Right-click on OutlookAutoArchive.exe" -ForegroundColor White
+                Write-Host "2. Select 'Properties'" -ForegroundColor White
+                Write-Host "3. Check 'Unblock' at the bottom of the dialog" -ForegroundColor White
+                Write-Host "4. Click 'OK'" -ForegroundColor White
+                Write-Host "5. Run the application again" -ForegroundColor White
+                Write-Host ""
+                Write-Host "Press any key to continue anyway..." -ForegroundColor Gray
+                $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+            }
+        }
+    }
+}
+catch {
+    Write-Host "Note: Could not check for Windows blocking status" -ForegroundColor Gray
+}
+
 # === Load config ===
 # Handle path for both script and executable
 if ($PSScriptRoot) {
@@ -167,16 +204,22 @@ if ($config.OnFirstRun -eq $true) {
             
             # Create a simple README.txt for users
             $readmeContent = @"
-Outlook Auto Archive - Version 2.1.0
+Outlook Auto Archive - Version 2.2.0
 ====================================
 
 This application automatically archives old emails from your Outlook accounts.
 
 QUICK START:
 1. Double-click OutlookAutoArchive.exe to run
-2. Follow the setup wizard to configure your preferences
-3. The app will create a config.json file with your settings
-4. Check the Logs folder for operation details
+2. If Windows blocks the file, the app will attempt to unblock it automatically
+3. Follow the setup wizard to configure your preferences
+4. The app will create a config.json file with your settings
+5. Check the Logs folder for operation details
+
+WINDOWS SECURITY:
+- If Windows blocks the executable, the app will try to unblock it automatically
+- If automatic unblocking fails, right-click the .exe file → Properties → Check "Unblock"
+- This is normal for files downloaded from the internet
 
 CONFIGURATION:
 - Edit config.json to change settings (retention days, dry-run mode, etc.)
@@ -187,7 +230,7 @@ SUPPORT:
 - For help and updates, visit the original repository
 - Check the Logs folder for troubleshooting information
 
-Version 2.1.0 - Simplified installation and improved user experience
+Version 2.2.0 - Professional metadata and Windows security handling
 "@
             
             $readmePath = Join-Path $installPath "README.txt"
