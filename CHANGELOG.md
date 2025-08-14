@@ -5,6 +5,22 @@ All notable changes to the Outlook Auto Archive Script will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.8.3] - 2025-08-14
+
+**Author**: Ryan Zeffiretti
+
+### Fixed
+
+- **Console Output Cleanup**: Fixed strange directory listing output that appeared during script execution
+- **New-Item Output Suppression**: Added Out-Null to suppress directory creation output
+- **User Experience**: Cleaner console output without unexpected directory listings
+
+### Technical Details
+
+- **Directory Creation**: Suppressed output from New-Item commands when creating log directories
+- **Console Cleanliness**: Eliminated unexpected directory listing that appeared after "=== Continuing with archive process... ==="
+- **Output Control**: Better control over what information is displayed to users
+
 ## [2.8.2] - 2025-08-14
 
 **Author**: Ryan Zeffiretti

@@ -3,7 +3,7 @@
   Auto-archive Outlook emails with options from config.json
 #>
 
-# Version: 2.8.2
+# Version: 2.8.3
 # Author: Ryan Zeffiretti
 # Description: Auto-archive Outlook emails with options from config.json
 
@@ -886,7 +886,7 @@ try {
     
     # Test if we can create the directory
     if (-not (Test-Path $LogPath)) { 
-        New-Item -Path $LogPath -ItemType Directory -Force -ErrorAction Stop
+        New-Item -Path $LogPath -ItemType Directory -Force -ErrorAction Stop | Out-Null
         Write-Host "Created log directory: $LogPath"
     }
     
