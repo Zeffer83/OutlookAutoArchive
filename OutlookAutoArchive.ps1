@@ -3,7 +3,7 @@
   Auto-archive Outlook emails with options from config.json
 #>
 
-# Version: 2.8.3
+# Version: 2.8.8
 # Author: Ryan Zeffiretti
 # Description: Auto-archive Outlook emails with options from config.json
 
@@ -57,61 +57,46 @@ catch {
 }
 
 # === Load config ===
-# Handle path for both script and executable
-if ($PSScriptRoot) {
-    $scriptDir = $PSScriptRoot
-}
-else {
-    # For executable, use current directory
-    $scriptDir = Get-Location
-}
+# Determine the installation directory
+$installPath = "C:\Users\$env:USERNAME\OutlookAutoArchive"
+$configPath = Join-Path $installPath 'config.json'
 
-$configPath = Join-Path $scriptDir 'config.json'
-$exampleConfigPath = Join-Path $scriptDir 'config.example.json'
-
-Write-Host "Script directory: $scriptDir"
+Write-Host "Installation directory: $installPath"
 Write-Host "Config path: $configPath"
 
-# Auto-create config file if missing
-if (-not (Test-Path $configPath)) {
-    Write-Host "Config file not found. Attempting to create one..."
-    
-    # Try to copy from example first
-    if (Test-Path $exampleConfigPath) {
-        Copy-Item $exampleConfigPath $configPath
-        Write-Host "Created config.json from config.example.json"
+# Initialize config object
+$config = $null
+
+# Try to load existing config
+if (Test-Path $configPath) {
+    try {
+        $config = Get-Content $configPath -Raw | ConvertFrom-Json
+        Write-Host "✅ Loaded existing configuration" -ForegroundColor Green
     }
-    else {
-        # Create default config
-        $defaultConfig = @{
-            RetentionDays      = 14
-            DryRun             = $true
-            LogPath            = ".\Logs"
-            GmailLabel         = "OutlookArchive"
-            OnFirstRun         = $true
-            ArchiveFolders     = @{}
-            MonitoringInterval = 4  # Hours between continuous monitoring runs
-            SkipRules          = @(
-                @{
-                    Mailbox  = "Your Mailbox Name"
-                    Subjects = @("Subject Pattern 1", "Subject Pattern 2")
-                }
-            )
-        }
-        
-        $defaultConfig | ConvertTo-Json -Depth 3 | Out-File $configPath -Encoding UTF8
-        Write-Host "Created default config.json with safe settings (DryRun = true)"
-        Write-Host "Please review and edit config.json before running in live mode"
+    catch {
+        Write-Host "⚠️  Invalid JSON in config.json, will create new configuration" -ForegroundColor Yellow
+        $config = $null
     }
 }
 
-try {
-    $config = Get-Content $configPath -Raw | ConvertFrom-Json
-}
-catch {
-    Write-Error "Invalid JSON in config.json: $_"
-    Write-Host "Please check your config.json file for syntax errors"
-    exit 1
+# If no config exists or is invalid, initialize with defaults
+if (-not $config) {
+    Write-Host "No valid configuration found. Initializing with default settings." -ForegroundColor Cyan
+    $config = @{
+        RetentionDays      = 14
+        DryRun             = $true
+        LogPath            = ".\Logs"
+        GmailLabel         = "OutlookArchive"
+        OnFirstRun         = $true
+        ArchiveFolders     = @{}
+        MonitoringInterval = 4  # Hours between continuous monitoring runs
+        SkipRules          = @(
+            @{
+                Mailbox  = "Your Mailbox Name"
+                Subjects = @("Subject Pattern 1", "Subject Pattern 2")
+            }
+        )
+    }
 }
 
 # === First Run Setup ===
@@ -158,57 +143,11 @@ if ($config.OnFirstRun -eq $true) {
         Write-Host ""
     }
     
-    # Ask about installation location
-    Write-Host "Where would you like to install Outlook Auto Archive?" -ForegroundColor Cyan
-    Write-Host "This will be the permanent location for the application and its files." -ForegroundColor White
-    Write-Host ""
-    Write-Host "Recommended locations:" -ForegroundColor Yellow
-    Write-Host "1. User Documents (C:\Users\$env:USERNAME\OutlookAutoArchive\) - User-specific installation (Recommended)" -ForegroundColor White
-    Write-Host "2. Custom location - Choose your own folder" -ForegroundColor White
-    Write-Host "3. Current location - Keep everything where it is now" -ForegroundColor White
-    Write-Host ""
-    
-    do {
-        $installChoice = Read-Host "Enter choice (1-3)"
-        if ($installChoice -match '^[1-3]$') {
-            break
-        }
-        Write-Host "Please enter 1, 2, or 3." -ForegroundColor Red
-    } while ($true)
-    
-    $installPath = ""
+    # Set installation location
     $currentLocation = if ($PSScriptRoot) { $PSScriptRoot } else { Get-Location }
+    $installPath = "C:\Users\$env:USERNAME\OutlookAutoArchive"
     
-    if ($installChoice -eq '1') {
-        $installPath = "$env:USERPROFILE\OutlookAutoArchive"
-        Write-Host "Selected: User Documents installation (Recommended)" -ForegroundColor Green
-    }
-    elseif ($installChoice -eq '2') {
-        Write-Host ""
-        Write-Host "Enter the full path where you want to install the application:" -ForegroundColor Cyan
-        Write-Host "Example: C:\MyTools\OutlookAutoArchive" -ForegroundColor Gray
-        do {
-            $customPath = Read-Host "Installation path"
-            if ([string]::IsNullOrWhiteSpace($customPath)) {
-                Write-Host "Please enter a valid path." -ForegroundColor Red
-                continue
-            }
-            
-            # Validate the path
-            try {
-                $installPath = [System.IO.Path]::GetFullPath($customPath)
-                break
-            }
-            catch {
-                Write-Host "Invalid path format. Please enter a valid path." -ForegroundColor Red
-            }
-        } while ($true)
-        Write-Host "Selected: Custom location ($installPath)" -ForegroundColor Green
-    }
-    elseif ($installChoice -eq '3') {
-        $installPath = $currentLocation
-        Write-Host "Selected: Current location ($installPath)" -ForegroundColor Green
-    }
+    Write-Host "Installation location: $installPath" -ForegroundColor Green
     
     # Check if we need to move files
     if ($installPath -ne $currentLocation) {
@@ -224,8 +163,7 @@ if ($config.OnFirstRun -eq $true) {
             
             # Copy only essential files to the installation location
             $filesToCopy = @(
-                "OutlookAutoArchive.exe",
-                "config.example.json"
+                "OutlookAutoArchive.exe"
             )
             
             $filesCopied = 0
@@ -243,7 +181,7 @@ if ($config.OnFirstRun -eq $true) {
             
             # Create a simple README.txt for users
             $readmeContent = @"
-Outlook Auto Archive - Version 2.2.0
+Outlook Auto Archive - Version 2.8.8
 ====================================
 
 This application automatically archives old emails from your Outlook accounts.
@@ -269,7 +207,7 @@ SUPPORT:
 - For help and updates, visit the original repository
 - Check the Logs folder for troubleshooting information
 
-Version 2.2.0 - Professional metadata and Windows security handling
+Version 2.8.8 - Simplified installation to user directory
 "@
             
             $readmePath = Join-Path $installPath "README.txt"
@@ -279,7 +217,6 @@ Version 2.2.0 - Professional metadata and Windows security handling
             # Update the script directory for the rest of the setup
             $scriptDir = $installPath
             $configPath = Join-Path $installPath 'config.json'
-            $exampleConfigPath = Join-Path $installPath 'config.example.json'
             
             Write-Host ""
             Write-Host "Installation completed successfully!" -ForegroundColor Green
@@ -295,14 +232,12 @@ Version 2.2.0 - Professional metadata and Windows security handling
             Write-Host "Continuing with current location..." -ForegroundColor Yellow
             $scriptDir = $currentLocation
             $configPath = Join-Path $currentLocation 'config.json'
-            $exampleConfigPath = Join-Path $currentLocation 'config.example.json'
         }
     }
     else {
         # Keep current location
         $scriptDir = $currentLocation
         $configPath = Join-Path $currentLocation 'config.json'
-        $exampleConfigPath = Join-Path $currentLocation 'config.example.json'
     }
     
     # Check if Outlook is running
@@ -578,6 +513,12 @@ Version 2.2.0 - Professional metadata and Windows security handling
     # Save monitoring interval if it was set
     if ($monitoringInterval) {
         $config.MonitoringInterval = $monitoringInterval
+    }
+    
+    # Create config directory if it doesn't exist
+    if (-not (Test-Path $installPath)) {
+        New-Item -Path $installPath -ItemType Directory -Force | Out-Null
+        Write-Host "Created installation directory: $installPath" -ForegroundColor Green
     }
     
     # Save updated config with discovered archive folders

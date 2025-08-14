@@ -3,7 +3,7 @@
 A PowerShell script that automatically archives emails older than a specified number of days from your Outlook Inbox to organized year/month folders. The script creates a structured archive system with folders organized by year and month (e.g., `Archive\2025\2025-08`) for easy email retrieval and management.
 
 **Author**: Ryan Zeffiretti  
-**Version**: 2.8.3  
+**Version**: 2.8.8  
 **License**: MIT
 
 ## Features
@@ -63,7 +63,7 @@ This is a one-time process - once unblocked, the file will run normally on subse
 **Files included:**
 
 - `OutlookAutoArchive.exe` - **Single executable (RECOMMENDED for all users) - FULLY TESTED AND WORKING**
-- `config.example.json` - Example configuration file
+
 - `config.json` - Your configuration file (auto-created on first run)
 
 **Source Code (for developers only):**
@@ -72,36 +72,23 @@ This is a one-time process - once unblocked, the file will run normally on subse
 
 **First Run Setup:**
 
-The script will automatically create a `config.json` file on first run if one doesn't exist. It will either copy from `config.example.json` if available, or create a default configuration with safe settings (DryRun = true).
+The script will automatically create a `config.json` file on first run if one doesn't exist, with safe default settings (DryRun = true).
 
-**Installation Options:**
+**Installation:**
 
-The script offers three installation locations during first-run setup:
-
-1. **User Documents** (`C:\Users\username\OutlookAutoArchive\`) - **Recommended**
-
-   - User-specific installation (no admin permissions required)
-   - Easy to find and manage
-   - Works with all Windows user types
-
-2. **Custom Location** - Choose your own folder
-
-   - Full control over installation path
-   - Useful for network drives or specific directories
-
-3. **Current Location** - Keep everything where it is now
-   - No file movement required
-   - Good for portable installations
+The application automatically installs to `C:\Users\[YourUsername]\OutlookAutoArchive` on first run.
+- User-specific installation (no admin permissions required)
+- Easy to find and manage
+- Works with all Windows user types
 
 **Recommended Setup Process:**
 
 1. **Double-click** `OutlookAutoArchive.exe` to start the first-run setup
-2. **Choose installation location** (User Documents recommended)
-3. **Follow the guided setup** to configure archive folders and scheduling
-4. **Check the log files** in the `Logs` folder within your installation directory
-5. **Review and edit** `config.json` if needed
-6. **Test again** to ensure everything works
-7. **Set up scheduled execution** (see Scheduled Execution section)
+2. **Follow the guided setup** to configure archive folders and scheduling
+3. **Check the log files** in the `Logs` folder within your installation directory
+4. **Review and edit** `config.json` if needed
+5. **Test again** to ensure everything works
+6. **Set up scheduled execution** (see Scheduled Execution section)
 
 ## Configuration
 

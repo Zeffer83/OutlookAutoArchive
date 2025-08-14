@@ -5,6 +5,85 @@ All notable changes to the Outlook Auto Archive Script will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.8.8] - 2025-08-14
+
+**Author**: Ryan Zeffiretti
+
+### Changed
+
+- **Simplified Installation**: Removed installation location choice, always installs to `C:\Users\$env:USERNAME\OutlookAutoArchive`
+- **Cleaner Code**: Eliminated complex installation path selection logic
+- **Predictable Location**: App always knows where everything is located
+
+### Technical Details
+
+- **Removed**: Installation choice prompts and validation logic
+- **Simplified**: Installation process now has one predictable path
+- **Streamlined**: Reduced code complexity and user decision points
+
+## [2.8.7] - 2025-08-14
+
+**Author**: Ryan Zeffiretti
+
+### Removed
+
+- **config.example.json**: Removed unnecessary example config file and all references to it
+- **Simplified Installation**: Installation now only copies the executable, no longer needs example config
+
+### Technical Details
+
+- **Cleaner Code**: Removed all `$exampleConfigPath` variables and related logic
+- **Streamlined Setup**: Config creation now relies entirely on hardcoded defaults
+- **Reduced Complexity**: Eliminated dependency on external example file
+
+## [2.8.6] - 2025-08-14
+
+**Author**: Ryan Zeffiretti
+
+### Fixed
+
+- **Config Object Initialization**: Fixed error when accessing config properties on null object
+- **Default Values**: Config object now properly initialized with default values before first-run setup
+
+### Technical Details
+
+- **Property Access**: Fixed `RetentionDays`, `GmailLabel`, and `OnFirstRun` property access errors
+- **Default Config**: Added proper default config initialization when no config file exists
+- **Error Prevention**: Prevents script from crashing when config properties are accessed
+
+## [2.8.5] - 2025-08-14
+
+**Author**: Ryan Zeffiretti
+
+### Changed
+
+- **Config Creation Logic**: Improved when and where config.json is created
+- **Installation Directory Priority**: Config is now always created in the installation directory
+- **Simplified Path Logic**: Removed complex path detection in favor of consistent installation directory
+
+### Technical Details
+
+- **Config Creation**: config.json is now only created when archive folders are discovered during first-run setup
+- **Directory Creation**: Installation directory is automatically created if it doesn't exist
+- **Path Consistency**: All config operations now use the installation directory consistently
+- **Error Handling**: Better handling of missing or invalid config files
+
+## [2.8.4] - 2025-08-14
+
+**Author**: Ryan Zeffiretti
+
+### Fixed
+
+- **Installation Directory Detection**: Fixed issue where executable was not using the correct config.json from installation directory
+- **Config Path Resolution**: Added logic to detect and use installation directory when config.json exists there
+- **Archive Folders Persistence**: Archive folders are now properly saved to the installation directory's config.json
+
+### Technical Details
+
+- **Directory Detection**: Added check for installation directory at `C:\Users\$env:USERNAME\OutlookAutoArchive`
+- **Config Priority**: Installation directory config.json takes priority over development directory
+- **User Experience**: Clear indication when installation directory is detected and used
+
 ## [2.8.3] - 2025-08-14
 
 **Author**: Ryan Zeffiretti
