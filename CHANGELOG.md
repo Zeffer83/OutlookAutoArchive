@@ -5,6 +5,82 @@ All notable changes to the Outlook Auto Archive Script will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.7.0] - 2025-08-14
+
+**Author**: Ryan Zeffiretti
+
+### Added
+
+- **Simplified Scheduling**: Streamlined scheduling options to just 3 clear choices
+- **Startup + Monitoring**: New combined option that starts when computer boots and runs every 4 hours
+- **Enhanced User Experience**: Cleaner interface with fewer confusing options
+
+### Changed
+
+- **Scheduling Options**: Reduced from 5 options to 3 options (Daily, Startup + Monitoring, Skip)
+- **Option 2 Redesign**: "When Outlook starts" now includes 4-hour periodic monitoring
+- **Removed Options**: Eliminated separate "Continuous monitoring" and "Smart monitoring" options
+- **User Interface**: Simplified scheduling menu with clearer descriptions
+
+### Technical Details
+
+- **Task Creation**: Option 2 now creates a task with `/sc onstart /delay 0000:30 /mo 4` parameters
+- **Graceful Handling**: Maintains existing graceful Outlook handling for scheduled runs
+- **Backward Compatibility**: Existing scheduled tasks continue to work normally
+
+## [2.6.0] - 2025-08-14
+
+**Author**: Ryan Zeffiretti
+
+### Added
+
+- **Smart Monitoring**: New scheduling option that starts when Outlook opens, then runs every 4-24 hours
+- **Graceful Outlook Handling**: Script now gracefully skips scheduled runs when Outlook is not available (no more failed tasks)
+- **Enhanced Error Handling**: Improved detection of scheduled vs. interactive runs for better error management
+- **Better User Experience**: Clear distinction between different monitoring options with detailed explanations
+
+### Changed
+
+- **Scheduling Options**: Added new "Smart monitoring" option (choice 4) that combines Outlook startup with periodic monitoring
+- **Error Handling**: Scheduled runs now exit gracefully with success code (0) when Outlook is not available
+- **Interactive Detection**: Script detects whether it's running interactively or as a scheduled task
+- **User Interface**: Updated scheduling menu to include 5 options with clear descriptions
+
+### Technical Details
+
+- **Scheduled Run Detection**: Uses `[Environment]::UserInteractive` and environment variables to detect task scheduler execution
+- **Graceful Exit**: Scheduled runs exit with code 0 instead of 1 when Outlook is unavailable
+- **Logging Integration**: Graceful exits are logged to both console and log files when possible
+- **Task Scheduler Compatibility**: Prevents failed task status in Windows Task Scheduler
+
+## [2.5.0] - 2025-08-14
+
+## [2.3.0] - 2025-08-14
+
+**Author**: Ryan Zeffiretti
+
+### Added
+
+- **Archive Folder Storage**: Archive folder paths are now stored in config.json during first run for faster subsequent executions
+- **Performance Optimization**: Eliminates the need to re-scan and search for archive folders on every run
+- **Enhanced User Feedback**: Shows which archive folders were discovered and stored during setup
+- **Smart Path Detection**: Automatically detects and stores Gmail labels, Inbox folders, and root folders with proper path formatting
+- **Backward Compatibility**: Falls back to searching if stored paths become invalid or inaccessible
+
+### Changed
+
+- **Faster Execution**: Subsequent runs use stored archive folder paths instead of searching
+- **Improved Setup Experience**: Clear display of discovered archive folders during first-run setup
+- **Enhanced Logging**: Better tracking of archive folder discovery and storage process
+- **Optimized Performance**: Reduced overhead by eliminating repeated folder searches
+
+### Technical Details
+
+- **Stored Path Format**: Archive folder paths stored as "Type:Path" (e.g., "GmailLabel:OutlookArchive", "Inbox:Archive", "Root:Archive")
+- **Intelligent Fallback**: If stored paths fail, automatically falls back to searching for backward compatibility
+- **Config Persistence**: Archive folder paths persist across application restarts and updates
+- **User Transparency**: Clear indication of which archive folders were found and stored
+
 ## [2.2.0] - 2025-08-14
 
 **Author**: Ryan Zeffiretti

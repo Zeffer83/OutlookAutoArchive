@@ -3,7 +3,7 @@
 A PowerShell script that automatically archives emails older than a specified number of days from your Outlook Inbox to organized year/month folders. The script creates a structured archive system with folders organized by year and month (e.g., `Archive\2025\2025-08`) for easy email retrieval and management.
 
 **Author**: Ryan Zeffiretti  
-**Version**: 2.2.0  
+**Version**: 2.7.0  
 **License**: MIT
 
 ## Features
@@ -18,6 +18,8 @@ A PowerShell script that automatically archives emails older than a specified nu
 - **Custom Skip Rules**: Built-in logic to skip specific emails (e.g., monitoring alerts)
 - **Outlook Status Check**: Automatically verifies Outlook is running before execution
 - **Enhanced Error Handling**: Improved logging and error recovery
+- **Continuous Monitoring**: Optional periodic archiving while computer is running (perfect for users who leave their computer on for days)
+- **Smart Monitoring**: Starts when Outlook opens, then runs every 4-24 hours with graceful handling when Outlook is closed
 
 ## Safety Features
 
@@ -130,13 +132,42 @@ The script uses a `config.json` file for configuration. Edit this file to custom
 - **`ArchiveFolders`**: Automatically populated with detected archive folder paths for faster access
 - **`SkipRules`**: Array of rules to skip specific emails by mailbox and subject patterns
 
-## ✅ **Status**: FULLY TESTED AND WORKING - Version 2.2.0
+## ✅ **Status**: FULLY TESTED AND WORKING - Version 2.7.0
 
 This script has been thoroughly tested and is working perfectly with all email account types (Gmail, Outlook, Exchange, etc.). It successfully detects archive folders, processes emails, and applies skip rules correctly.
 
 **Test Results**: Successfully processed 1,000+ emails across multiple accounts with proper archive folder detection and skip rule functionality.
 
-**Latest Improvements (v2.2.0)**:
+**Latest Improvements (v2.7.0)**:
+
+- ✅ **Simplified Scheduling**: Streamlined to just 3 clear options - Daily, Startup + Monitoring, or Skip
+- ✅ **Startup + Monitoring**: Combines system startup with 4-hour periodic monitoring for optimal archiving
+- ✅ **Graceful Outlook Handling**: Script gracefully skips runs when Outlook is not available (no failed tasks)
+- ✅ **Better User Experience**: Cleaner interface with fewer confusing options
+
+**Previous Improvements (v2.6.0)**:
+
+- ✅ **Smart Monitoring**: New scheduling option that starts when Outlook opens, then runs every 4-24 hours
+- ✅ **Graceful Outlook Handling**: Script gracefully skips scheduled runs when Outlook is not available (no more failed tasks)
+- ✅ **Enhanced Continuous Monitoring**: Improved error handling for all scheduled tasks
+- ✅ **Better User Experience**: Clear distinction between different monitoring options
+
+**Previous Improvements (v2.5.0)**:
+
+- ✅ **Continuous Monitoring**: New scheduling option that runs every 4-24 hours while computer is on (perfect for users who leave their computer running for days)
+- ✅ **Customizable Monitoring Interval**: Users can choose how often the script runs (1-24 hours)
+- ✅ **Smart Scheduling**: Addresses the issue where emails wouldn't be archived if Outlook wasn't restarted for days
+- ✅ **Enhanced User Experience**: Clear explanations of each scheduling option and their benefits
+
+**Previous Improvements (v2.4.0)**:
+
+- ✅ **Archive Folder Storage**: Archive folder paths are stored in config.json for faster subsequent runs
+- ✅ **Performance Optimization**: Eliminates re-scanning of archive folders on every run
+- ✅ **Enhanced User Feedback**: Shows which archive folders were discovered and stored
+- ✅ **Smart Path Detection**: Automatically detects and stores Gmail labels, Inbox folders, and root folders
+- ✅ **Backward Compatibility**: Falls back to searching if stored paths become invalid
+
+**Previous Improvements (v2.2.0)**:
 
 - ✅ **Streamlined Installation**: Only essential files copied (exe + config example)
 - ✅ **User-Friendly README.txt**: Simple, clear instructions instead of complex markdown
@@ -251,9 +282,40 @@ The easiest way to run the script is using the provided executable:
 
 ### Scheduled Execution
 
-To run automatically, create a Windows Task Scheduler task:
+The first-run setup offers three simple scheduling options:
 
-#### Method 1: Using Task Scheduler GUI (Recommended)
+#### Method 1: Daily at Specific Time
+
+Choose "Daily at a specific time" during first-run setup for traditional scheduling.
+
+This creates a scheduled task that:
+
+- Runs once per day at your chosen time (e.g., 2:00 AM)
+- Perfect for users who want predictable, scheduled archiving
+- Works well with regular computer usage patterns
+
+#### Method 2: Startup + Monitoring (Recommended)
+
+Choose "When Outlook starts + every 4 hours" during first-run setup for the best solution.
+
+This creates a scheduled task that:
+
+- Starts when the computer boots (with 30-second delay)
+- Runs every 4 hours while the computer is on
+- Gracefully skips runs when Outlook is not available (no failed tasks)
+- Perfect for users who want archiving only when Outlook is available
+- Best option for users who close Outlook occasionally
+
+**Benefits:**
+
+- No failed scheduled tasks when Outlook is closed
+- Automatic archiving when Outlook is available
+- Smart detection of Outlook availability
+- Optimal for most users who want reliable archiving
+
+#### Method 3: Manual Setup (Advanced Users)
+
+If you prefer to set up scheduling manually:
 
 1. **Open Task Scheduler** (search in Start menu)
 2. **Click "Create Basic Task"** in the right panel
@@ -265,39 +327,11 @@ To run automatically, create a Windows Task Scheduler task:
 8. **Arguments**: (leave empty)
 9. **Finish**: Review settings and click Finish
 
-#### Method 2: Using Command Line
+**Command Line Alternative:**
 
 ```cmd
 schtasks /create /tn "Outlook Auto Archive" /tr "C:\path\to\OutlookAutoArchive.exe" /sc daily /st 02:00 /f
 ```
-
-**Parameters:**
-
-- `/tn`: Task name
-- `/tr`: Program to run (full path to executable)
-- `/sc`: Schedule (daily, weekly, etc.)
-- `/st`: Start time (24-hour format)
-- `/f`: Force creation (overwrite if exists)
-
-#### Method 3: Using PowerShell Script (Advanced Users)
-
-1. Open Task Scheduler
-2. Create Basic Task
-3. Set trigger (e.g., daily at 2 AM)
-4. Action: Start a program
-5. Program: `powershell.exe`
-6. Arguments: `-ExecutionPolicy Bypass -File "C:\path\to\OutlookAutoArchive.ps1"`
-
-#### Method 4: Run When Outlook Starts (Recommended)
-
-The first-run setup includes an option to create a task that runs when Outlook starts. Simply choose "When Outlook starts" during the interactive setup process.
-
-This creates a scheduled task that:
-
-- Starts when the system boots
-- Waits for Outlook to start
-- Runs the archive script automatically
-- Ensures Outlook is always running when the script executes
 
 #### Testing Your Scheduled Task
 
@@ -490,4 +524,4 @@ If you encounter issues:
 
 ---
 
-**Note**: This script is designed for personal use and should be tested thoroughly in your environment before production use. This is version 2.2.0 and is provided "as-is" with no planned updates unless critical issues are found.
+**Note**: This script is designed for personal use and should be tested thoroughly in your environment before production use. This is version 2.3.0 and is provided "as-is" with no planned updates unless critical issues are found.
