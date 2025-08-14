@@ -415,8 +415,21 @@ Version 2.2.0 - Professional metadata and Windows security handling
                             $config.ArchiveFolders[$account.Name] = "GmailLabel:$gmailLabel"
                         }
                         catch {
-                            Write-Host "  ❌ Failed to create Gmail label: $_" -ForegroundColor Red
-                            $errors++
+                            # Check if the label was actually created despite the error
+                            try {
+                                $testLabel = $account.Folders.Item($gmailLabel)
+                                if ($testLabel) {
+                                    Write-Host "  ✅ Gmail label '$gmailLabel' was created successfully" -ForegroundColor Green
+                                    $foldersCreated++
+                                    # Store the Gmail label path in config
+                                    $config.ArchiveFolders[$account.Name] = "GmailLabel:$gmailLabel"
+                                }
+                            }
+                            catch {
+                                Write-Host "  ⚠️  Gmail label creation encountered an issue, but this is often normal for Gmail accounts" -ForegroundColor Yellow
+                                Write-Host "  The label may still be available in Outlook. You can check manually or try again later." -ForegroundColor Gray
+                                $errors++
+                            }
                         }
                     }
                     else {
@@ -647,16 +660,32 @@ Version 2.2.0 - Professional metadata and Windows security handling
                      $program = $scriptPath
                  }
                  
+                 # Build the command with proper arguments
                  $createTaskCmd = "schtasks /create /tn `"$taskName`" /tr `"$program`" /sc onstart /delay 0000:30 /f"
-                 if ($arguments) { $createTaskCmd += " $arguments" }
+                 if ($arguments) { 
+                     $createTaskCmd = "schtasks /create /tn `"$taskName`" /tr `"$program $arguments`" /sc onstart /delay 0000:30 /f"
+                 }
                  
+                 Write-Host "Creating scheduled task: $taskName" -ForegroundColor Yellow
                  $result = Invoke-Expression $createTaskCmd
                  
                  if ($LASTEXITCODE -eq 0) {
                      Write-Host "✅ Startup task created successfully!" -ForegroundColor Green
+                     Write-Host "Task name: $taskName" -ForegroundColor White
                      Write-Host "Task will run 30 seconds after system startup" -ForegroundColor White
+                     Write-Host "You can find it in Task Scheduler under 'Task Scheduler Library'" -ForegroundColor Cyan
                  } else {
                      Write-Host "⚠️  Could not create startup task automatically." -ForegroundColor Yellow
+                     Write-Host "Error code: $LASTEXITCODE" -ForegroundColor Red
+                     Write-Host "You can create it manually in Task Scheduler:" -ForegroundColor White
+                     Write-Host "1. Open Task Scheduler" -ForegroundColor Gray
+                     Write-Host "2. Create Basic Task" -ForegroundColor Gray
+                     Write-Host "3. Name: $taskName" -ForegroundColor Gray
+                     Write-Host "4. Trigger: At system startup" -ForegroundColor Gray
+                     Write-Host "5. Action: Start program: $program" -ForegroundColor Gray
+                     if ($arguments) {
+                         Write-Host "6. Arguments: $arguments" -ForegroundColor Gray
+                     }
                  }
              }
          }
@@ -679,6 +708,11 @@ Version 2.2.0 - Professional metadata and Windows security handling
      Write-Host "2. Check the log files to verify everything works" -ForegroundColor White
      Write-Host "3. When ready, edit config.json and set 'DryRun': false" -ForegroundColor White
      Write-Host "4. Test your scheduled task if you created one" -ForegroundColor White
+     
+     Write-Host ""
+     Write-Host "⚠️  IMPORTANT: The dry-run test may take several minutes depending on how many emails you have." -ForegroundColor Yellow
+     Write-Host "This is normal - the script is scanning all your emails to show what would be archived." -ForegroundColor White
+     Write-Host "Please be patient and don't close the window while it's running." -ForegroundColor White
     
     if ($gmailAccounts.Count -gt 0) {
         Write-Host ""
