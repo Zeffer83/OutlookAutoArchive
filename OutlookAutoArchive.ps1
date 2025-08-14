@@ -120,6 +120,41 @@ if ($config.OnFirstRun -eq $true) {
     Write-Host "Let's set up your archive folders and configuration." -ForegroundColor White
     Write-Host ""
     
+    # Check admin rights early for scheduling setup
+    Write-Host "Checking system requirements..." -ForegroundColor Cyan
+    $isAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")
+    
+    if (-not $isAdmin) {
+        Write-Host "⚠️  Note: You're not running as Administrator" -ForegroundColor Yellow
+        Write-Host "This is fine for normal usage, but you'll need admin rights for scheduled task creation." -ForegroundColor White
+        Write-Host "You can:" -ForegroundColor Cyan
+        Write-Host "1. Continue with setup (you can set up scheduling later with admin rights)" -ForegroundColor White
+        Write-Host "2. Restart as Administrator now" -ForegroundColor White
+        Write-Host ""
+        
+        do {
+            $adminChoice = Read-Host "Continue with setup or restart as Administrator? (1/2)"
+            if ($adminChoice -match '^[1-2]$') {
+                break
+            }
+            Write-Host "Please enter 1 or 2." -ForegroundColor Red
+        } while ($true)
+        
+        if ($adminChoice -eq '2') {
+            Write-Host "Restarting with admin rights..." -ForegroundColor Yellow
+            $scriptPath = if ($PSScriptRoot) { Join-Path $PSScriptRoot "OutlookAutoArchive.exe" } else { Join-Path (Get-Location) "OutlookAutoArchive.exe" }
+            Start-Process -FilePath $scriptPath -Verb RunAs
+            exit 0
+        }
+        else {
+            Write-Host "Continuing with setup. You can set up scheduling later with admin rights." -ForegroundColor Green
+            Write-Host ""
+        }
+    } else {
+        Write-Host "✅ Running with Administrator privileges - all features available" -ForegroundColor Green
+        Write-Host ""
+    }
+    
     # Ask about installation location
     Write-Host "Where would you like to install Outlook Auto Archive?" -ForegroundColor Cyan
     Write-Host "This will be the permanent location for the application and its files." -ForegroundColor White
@@ -601,36 +636,21 @@ Version 2.2.0 - Professional metadata and Windows security handling
              Write-Host "Please enter a valid time in 24-hour format (HH:MM)." -ForegroundColor Red
          } while ($true)
          
-         # Check if running with admin rights
-         $isAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")
-         
+         # Create daily scheduled task (admin rights already checked at setup start)
          if (-not $isAdmin) {
              Write-Host "⚠️  Admin rights required for scheduled task creation" -ForegroundColor Yellow
-             Write-Host "You have two options:" -ForegroundColor White
-             Write-Host "1. Run the application as Administrator (recommended)" -ForegroundColor Cyan
-             Write-Host "2. Create the task manually using the instructions below" -ForegroundColor Cyan
+             Write-Host "You can set up scheduling manually later using Task Scheduler:" -ForegroundColor White
+             Write-Host "1. Open Task Scheduler (search in Start menu)" -ForegroundColor Gray
+             Write-Host "2. Click 'Create Basic Task'" -ForegroundColor Gray
+             Write-Host "3. Name: 'Outlook Auto Archive'" -ForegroundColor Gray
+             Write-Host "4. Trigger: 'Daily' at $scheduledTime" -ForegroundColor Gray
+             Write-Host "5. Action: 'Start a program'" -ForegroundColor Gray
+             Write-Host "6. Program: '$scriptPath'" -ForegroundColor Gray
+             Write-Host "7. Finish and check 'Open properties dialog'" -ForegroundColor Gray
+             Write-Host "8. In Properties, go to 'General' tab and check 'Run with highest privileges'" -ForegroundColor Gray
+             Write-Host "9. Click OK to save" -ForegroundColor Gray
              Write-Host ""
-             
-             $adminChoice = Read-Host "Would you like to restart as Administrator? (Y/N)"
-             if ($adminChoice -eq 'Y' -or $adminChoice -eq 'y') {
-                 Write-Host "Restarting with admin rights..." -ForegroundColor Yellow
-                 $scriptPath = if ($PSScriptRoot) { Join-Path $PSScriptRoot "OutlookAutoArchive.exe" } else { Join-Path (Get-Location) "OutlookAutoArchive.exe" }
-                 Start-Process -FilePath $scriptPath -Verb RunAs
-                 exit 0
-             } else {
-                 Write-Host "Manual task creation instructions:" -ForegroundColor Cyan
-                 Write-Host "1. Open Task Scheduler (search in Start menu)" -ForegroundColor White
-                 Write-Host "2. Click 'Create Basic Task'" -ForegroundColor White
-                 Write-Host "3. Name: 'Outlook Auto Archive'" -ForegroundColor White
-                 Write-Host "4. Trigger: 'Daily' at $scheduledTime" -ForegroundColor White
-                 Write-Host "5. Action: 'Start a program'" -ForegroundColor White
-                 Write-Host "6. Program: '$scriptPath'" -ForegroundColor White
-                 Write-Host "7. Finish and check 'Open properties dialog'" -ForegroundColor White
-                 Write-Host "8. In Properties, go to 'General' tab and check 'Run with highest privileges'" -ForegroundColor White
-                 Write-Host "9. Click OK to save" -ForegroundColor White
-                 Write-Host ""
-                 Write-Host "The task will run daily at $scheduledTime." -ForegroundColor Green
-             }
+             Write-Host "The task will run daily at $scheduledTime." -ForegroundColor Green
          } else {
              # Create daily scheduled task
              try {
@@ -681,40 +701,25 @@ Version 2.2.0 - Professional metadata and Windows security handling
          Write-Host "Perfect for users who want archiving only when Outlook is available!" -ForegroundColor Gray
          Write-Host ""
          
-         # Check if running with admin rights
-         $isAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")
-         
+         # Create startup + monitoring task (admin rights already checked at setup start)
          if (-not $isAdmin) {
              Write-Host "⚠️  Admin rights required for scheduled task creation" -ForegroundColor Yellow
-             Write-Host "You have two options:" -ForegroundColor White
-             Write-Host "1. Run the application as Administrator (recommended)" -ForegroundColor Cyan
-             Write-Host "2. Create the task manually using the instructions below" -ForegroundColor Cyan
+             Write-Host "You can set up scheduling manually later using Task Scheduler:" -ForegroundColor White
+             Write-Host "1. Open Task Scheduler (search in Start menu)" -ForegroundColor Gray
+             Write-Host "2. Click 'Create Basic Task'" -ForegroundColor Gray
+             Write-Host "3. Name: 'Outlook Auto Archive - Startup + Monitoring'" -ForegroundColor Gray
+             Write-Host "4. Trigger: 'When the computer starts'" -ForegroundColor Gray
+             Write-Host "5. Action: 'Start a program'" -ForegroundColor Gray
+             Write-Host "6. Program: '$scriptPath'" -ForegroundColor Gray
+             Write-Host "7. Finish and check 'Open properties dialog'" -ForegroundColor Gray
+             Write-Host "8. In Properties, go to 'Triggers' tab and edit the trigger" -ForegroundColor Gray
+             Write-Host "9. Set 'Repeat task every: 4 hours'" -ForegroundColor Gray
+             Write-Host "10. Set 'for a duration of: Indefinitely'" -ForegroundColor Gray
+             Write-Host "11. In 'General' tab, check 'Run with highest privileges'" -ForegroundColor Gray
+             Write-Host "12. Click OK to save" -ForegroundColor Gray
              Write-Host ""
-             
-             $adminChoice = Read-Host "Would you like to restart as Administrator? (Y/N)"
-             if ($adminChoice -eq 'Y' -or $adminChoice -eq 'y') {
-                 Write-Host "Restarting with admin rights..." -ForegroundColor Yellow
-                 $scriptPath = if ($PSScriptRoot) { Join-Path $PSScriptRoot "OutlookAutoArchive.exe" } else { Join-Path (Get-Location) "OutlookAutoArchive.exe" }
-                 Start-Process -FilePath $scriptPath -Verb RunAs
-                 exit 0
-             } else {
-                 Write-Host "Manual task creation instructions:" -ForegroundColor Cyan
-                 Write-Host "1. Open Task Scheduler (search in Start menu)" -ForegroundColor White
-                 Write-Host "2. Click 'Create Basic Task'" -ForegroundColor White
-                 Write-Host "3. Name: 'Outlook Auto Archive - Startup + Monitoring'" -ForegroundColor White
-                 Write-Host "4. Trigger: 'When the computer starts'" -ForegroundColor White
-                 Write-Host "5. Action: 'Start a program'" -ForegroundColor White
-                 Write-Host "6. Program: '$scriptPath'" -ForegroundColor White
-                 Write-Host "7. Finish and check 'Open properties dialog'" -ForegroundColor White
-                 Write-Host "8. In Properties, go to 'Triggers' tab and edit the trigger" -ForegroundColor White
-                 Write-Host "9. Set 'Repeat task every: 4 hours'" -ForegroundColor White
-                 Write-Host "10. Set 'for a duration of: Indefinitely'" -ForegroundColor White
-                 Write-Host "11. In 'General' tab, check 'Run with highest privileges'" -ForegroundColor White
-                 Write-Host "12. Click OK to save" -ForegroundColor White
-                 Write-Host ""
-                 Write-Host "The task will start when the computer starts and run every 4 hours." -ForegroundColor Green
-                 Write-Host "The script will gracefully skip runs when Outlook is not available." -ForegroundColor Green
-             }
+             Write-Host "The task will start when the computer starts and run every 4 hours." -ForegroundColor Green
+             Write-Host "The script will gracefully skip runs when Outlook is not available." -ForegroundColor Green
          } else {
              try {
                  $taskName = "Outlook Auto Archive - Startup + Monitoring"
