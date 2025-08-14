@@ -3,7 +3,7 @@
   Auto-archive Outlook emails with options from config.json
 #>
 
-# Version: 2.1.0
+# Version: 2.2.0
 # Author: Ryan Zeffiretti
 # Description: Auto-archive Outlook emails with options from config.json
 
@@ -146,16 +146,10 @@ if ($config.OnFirstRun -eq $true) {
                 Write-Host "✅ Created installation directory" -ForegroundColor Green
             }
             
-            # Copy all necessary files to the installation location
+            # Copy only essential files to the installation location
             $filesToCopy = @(
                 "OutlookAutoArchive.exe",
-                "OutlookAutoArchive.ps1", 
-                "config.example.json",
-                "README.md",
-                "CHANGELOG.md",
-                "LICENSE",
-                "CONTRIBUTING.md",
-                "SECURITY.md"
+                "config.example.json"
             )
             
             $filesCopied = 0
@@ -170,6 +164,35 @@ if ($config.OnFirstRun -eq $true) {
             }
             
             Write-Host "✅ Copied $filesCopied files to installation directory" -ForegroundColor Green
+            
+            # Create a simple README.txt for users
+            $readmeContent = @"
+Outlook Auto Archive - Version 2.1.0
+====================================
+
+This application automatically archives old emails from your Outlook accounts.
+
+QUICK START:
+1. Double-click OutlookAutoArchive.exe to run
+2. Follow the setup wizard to configure your preferences
+3. The app will create a config.json file with your settings
+4. Check the Logs folder for operation details
+
+CONFIGURATION:
+- Edit config.json to change settings (retention days, dry-run mode, etc.)
+- Set 'DryRun': false when ready to archive emails for real
+- Logs are stored in the Logs folder within this directory
+
+SUPPORT:
+- For help and updates, visit the original repository
+- Check the Logs folder for troubleshooting information
+
+Version 2.1.0 - Simplified installation and improved user experience
+"@
+            
+            $readmePath = Join-Path $installPath "README.txt"
+            $readmeContent | Out-File -FilePath $readmePath -Encoding UTF8
+            Write-Host "✅ Created user-friendly README.txt" -ForegroundColor Green
             
             # Update the script directory for the rest of the setup
             $scriptDir = $installPath
@@ -311,6 +334,13 @@ if ($config.OnFirstRun -eq $true) {
         try {
             Write-Host ""
             Write-Host "Processing account: $($account.Name)" -ForegroundColor Cyan
+            
+            # Skip non-email account types
+            $skipAccountTypes = @("Internet Calendars", "SharePoint Lists", "Public Folders", "Calendar", "Contacts", "Tasks", "Notes")
+            if ($skipAccountTypes -contains $account.Name) {
+                Write-Host "  ⚠️  Skipping non-email account type: $($account.Name)" -ForegroundColor Yellow
+                continue
+            }
             
             # Check if this looks like a Gmail account
             $isGmail = $account.Name -like "*@gmail.com" -or $account.Name -like "*@googlemail.com" -or $account.Name -like "*@gmail.co.uk"
@@ -851,6 +881,15 @@ function Get-ArchiveFolder {
 foreach ($account in $namespace.Folders) {
     try {
         Write-Host "Processing account: $($account.Name)" -ForegroundColor Cyan
+        
+        # Skip non-email account types
+        $skipAccountTypes = @("Internet Calendars", "SharePoint Lists", "Public Folders", "Calendar", "Contacts", "Tasks", "Notes")
+        if ($skipAccountTypes -contains $account.Name) {
+            $logMessage = "[$($account.Name)] Skipping non-email account type."
+            Write-Log -Message $logMessage -LogFile $LogFile
+            continue
+        }
+        
         $archiveRoot = Get-ArchiveFolder $account
         if (-not $archiveRoot) {
             $logMessage = "[$($account.Name)] No 'Archive' folder found, skipping."

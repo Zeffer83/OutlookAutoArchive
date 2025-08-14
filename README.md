@@ -3,7 +3,7 @@
 A PowerShell script that automatically archives emails older than a specified number of days from your Outlook Inbox to organized year/month folders. The script creates a structured archive system with folders organized by year and month (e.g., `Archive\2025\2025-08`) for easy email retrieval and management.
 
 **Author**: Ryan Zeffiretti  
-**Version**: 2.1.0  
+**Version**: 2.2.0  
 **License**: MIT
 
 ## Features
@@ -112,20 +112,20 @@ The script uses a `config.json` file for configuration. Edit this file to custom
 - **`ArchiveFolders`**: Automatically populated with detected archive folder paths for faster access
 - **`SkipRules`**: Array of rules to skip specific emails by mailbox and subject patterns
 
-## ✅ **Status**: FULLY TESTED AND WORKING - Version 2.1.0
+## ✅ **Status**: FULLY TESTED AND WORKING - Version 2.2.0
 
 This script has been thoroughly tested and is working perfectly with all email account types (Gmail, Outlook, Exchange, etc.). It successfully detects archive folders, processes emails, and applies skip rules correctly.
 
 **Test Results**: Successfully processed 1,000+ emails across multiple accounts with proper archive folder detection and skip rule functionality.
 
-**Latest Improvements (v2.1.0)**:
+**Latest Improvements (v2.2.0)**:
 
-- ✅ **Simplified Installation**: Removed Program Files option to eliminate permission issues
-- ✅ **User-Friendly Paths**: Changed User Documents path to `C:\Users\username\OutlookAutoArchive`
-- ✅ **Streamlined Choices**: Reduced installation options from 4 to 3 for clarity
-- ✅ **Enhanced Error Handling**: Improved Outlook connection and user feedback
-- ✅ **Better User Experience**: Cleaner setup process with better guidance
-- ✅ **Improved Logging**: Logs now stored in installation directory (no more OneDrive confusion)
+- ✅ **Streamlined Installation**: Only essential files copied (exe + config example)
+- ✅ **User-Friendly README.txt**: Simple, clear instructions instead of complex markdown
+- ✅ **Clean Installation**: No development files or repository clutter
+- ✅ **Professional Appearance**: Minimal, focused installation directory
+- ✅ **Auto-Skip Non-Email Accounts**: Automatically skips Internet Calendars, SharePoint Lists, etc.
+- ✅ **Improved Logging**: Logs stored in installation directory (no OneDrive confusion)
 
 **New in v2.0.0**: Ultimate single-file experience! Removed all standalone setup scripts - everything is now integrated into the main executable with a complete guided first-run setup.
 
@@ -470,4 +470,4 @@ If you encounter issues:
 
 ---
 
-**Note**: This script is designed for personal use and should be tested thoroughly in your environment before production use. This is version 2.1.0 and is provided "as-is" with no planned updates unless critical issues are found.
+**Note**: This script is designed for personal use and should be tested thoroughly in your environment before production use. This is version 2.2.0 and is provided "as-is" with no planned updates unless critical issues are found.

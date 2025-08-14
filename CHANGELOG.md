@@ -5,6 +5,37 @@ All notable changes to the Outlook Auto Archive Script will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2025-08-14
+
+**Author**: Ryan Zeffiretti
+
+### Added
+
+- **Streamlined Installation Process**: Only essential files copied during installation (exe + config example)
+- **User-Friendly README.txt**: Simple, clear instructions created during installation instead of complex markdown
+- **Auto-Skip Non-Email Accounts**: Automatically skips Internet Calendars, SharePoint Lists, Public Folders, Calendar, Contacts, Tasks, and Notes
+- **Clean Installation Directory**: Professional, minimal installation with only necessary files
+
+### Changed
+
+- **Simplified File Copying**: Reduced from 8 files to 2 essential files during installation
+- **Enhanced User Experience**: Cleaner installation directory with user-friendly documentation
+- **Improved Account Processing**: Non-email accounts automatically skipped during setup and processing
+- **Professional Appearance**: Installation directory now contains only what users need
+
+### Removed
+
+- **Development Files**: No longer copies source code, documentation, or repository files to user installations
+- **Repository Clutter**: Eliminated copying of README.md, CHANGELOG.md, LICENSE, CONTRIBUTING.md, SECURITY.md
+- **Source Code**: PowerShell script no longer copied to user installations
+
+### Technical Details
+
+- **Essential Files Only**: Installation now copies only OutlookAutoArchive.exe and config.example.json
+- **Dynamic README Creation**: User-friendly README.txt generated during installation with version-specific content
+- **Account Type Detection**: Intelligent detection and skipping of non-email account types
+- **Cleaner User Experience**: Installation directory contains only executable, config template, and simple README
+
 ## [2.0.0] - 2025-08-13
 
 **Author**: Ryan Zeffiretti
