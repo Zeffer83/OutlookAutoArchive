@@ -544,10 +544,14 @@ Version 2.2.0 - Professional metadata and Windows security handling
         $config.ArchiveFolders = @{}
     }
     
-    # Save updated config
+    # Save updated config with discovered archive folders
     try {
         $config | ConvertTo-Json -Depth 3 | Out-File $configPath -Encoding UTF8
-        Write-Host "✅ Configuration saved" -ForegroundColor Green
+        Write-Host "✅ Configuration saved with archive folder paths" -ForegroundColor Green
+        Write-Host "Archive folders discovered and stored for future runs:" -ForegroundColor Cyan
+        foreach ($accountName in $config.ArchiveFolders.Keys) {
+            Write-Host "  - $accountName`: $($config.ArchiveFolders[$accountName])" -ForegroundColor White
+        }
     }
     catch {
         Write-Host "❌ Failed to save configuration: $_" -ForegroundColor Red
