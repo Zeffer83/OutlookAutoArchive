@@ -3,7 +3,7 @@
   Auto-archive Outlook emails with options from config.json
 #>
 
-# Version: 2.8.1
+# Version: 2.8.2
 # Author: Ryan Zeffiretti
 # Description: Auto-archive Outlook emails with options from config.json
 
@@ -805,6 +805,15 @@ Version 2.2.0 - Professional metadata and Windows security handling
     Write-Host ""
     Write-Host "=== Continuing with archive process... ===" -ForegroundColor Cyan
     Write-Host ""
+    
+    # Reload config to get the updated values from the first-run setup
+    try {
+        $config = Get-Content $configPath -Raw | ConvertFrom-Json
+        Write-Host "✅ Configuration reloaded with updated settings" -ForegroundColor Green
+    }
+    catch {
+        Write-Host "⚠️  Could not reload configuration, continuing with current settings" -ForegroundColor Yellow
+    }
 }
 
 # === Apply config settings ===

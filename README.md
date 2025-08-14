@@ -3,7 +3,7 @@
 A PowerShell script that automatically archives emails older than a specified number of days from your Outlook Inbox to organized year/month folders. The script creates a structured archive system with folders organized by year and month (e.g., `Archive\2025\2025-08`) for easy email retrieval and management.
 
 **Author**: Ryan Zeffiretti  
-**Version**: 2.8.1  
+**Version**: 2.8.2  
 **License**: MIT
 
 ## Features

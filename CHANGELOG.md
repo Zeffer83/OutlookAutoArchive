@@ -5,6 +5,22 @@ All notable changes to the Outlook Auto Archive Script will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.8.2] - 2025-08-14
+
+**Author**: Ryan Zeffiretti
+
+### Fixed
+
+- **ArchiveFolders Configuration Reload**: Fixed issue where archive folders were not being loaded after first-run setup
+- **Config Persistence**: Added config reload after first-run setup to ensure updated settings are used
+- **Archive Folder Discovery**: Archive folders are now properly loaded and used in subsequent runs
+
+### Technical Details
+
+- **Config Reload**: Added automatic config reload after first-run setup completion
+- **Archive Folder Loading**: Archive folders discovered during setup are now properly loaded for archiving process
+- **Configuration Flow**: Improved the flow between setup and archiving phases
+
 ## [2.8.1] - 2025-08-14
 
 **Author**: Ryan Zeffiretti
