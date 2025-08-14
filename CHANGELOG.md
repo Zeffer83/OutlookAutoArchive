@@ -5,6 +5,24 @@ All notable changes to the Outlook Auto Archive Script will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.8.0] - 2025-08-14
+
+**Author**: Ryan Zeffiretti
+
+### Fixed
+
+- **PowerShell Warnings**: Resolved all PowerShell linting warnings for cleaner code execution
+- **Unused Variables**: Removed unused variable assignments (`newLabel`, `archivePath`, `taskDescription`, `result`)
+- **Null Comparison**: Fixed `$null` placement in equality comparisons for better PowerShell practices
+- **Code Quality**: Improved code quality and eliminated potential issues
+
+### Technical Details
+
+- **Variable Cleanup**: Removed unused variable assignments that were flagged by PowerShell analyzers
+- **Best Practices**: Changed `$env:COMPUTERNAME -eq $null` to `$null -eq $env:COMPUTERNAME` for better PowerShell practices
+- **Code Optimization**: Eliminated unnecessary variable assignments that could cause confusion
+- **Linting Compliance**: Script now passes PowerShell linting checks without warnings
+
 ## [2.7.0] - 2025-08-14
 
 **Author**: Ryan Zeffiretti
