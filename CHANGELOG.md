@@ -5,6 +5,138 @@ All notable changes to the Outlook Auto Archive Script will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.9.5] - 2025-08-14
+
+### Added
+
+- **Console Compatibility**: Replaced all Unicode emoji characters with ASCII-compatible alternatives to fix display issues in Windows console
+- **Universal Display**: All text indicators now use ASCII characters that display correctly across all Windows systems
+- **Professional Appearance**: Clean, readable ASCII text indicators ([OK], [ERROR], [TIP], etc.) instead of Unicode symbols
+
+### Changed
+
+- **UI/UX Enhancement**: Replaced emoji characters with ASCII alternatives throughout both scripts
+- **Display Reliability**: Improved console output consistency across different terminal environments
+- **Cross-Platform Compatibility**: Enhanced compatibility with various Windows console configurations
+
+### Technical Details
+
+- **Character Replacement**: Converted all Unicode emoji characters to ASCII equivalents
+- **Script Updates**: Updated both `OutlookAutoArchive.ps1` and `setup_task_scheduler.ps1`
+- **Executable Rebuild**: Rebuilt both executables with ASCII-compatible characters
+- **Version Update**: Incremented version to 2.9.5 across all files
+
+---
+
+## [2.9.4] - 2025-08-14
+
+**Author**: Ryan Zeffiretti
+
+### Fixed
+
+- **Task Scheduler Commands**: Fixed critical bug in `setup_task_scheduler.ps1` where `/f` parameter was incorrectly used in `schtasks /change` command
+- **Continuous Monitoring Task**: Fixed incorrect `/mo` parameter usage in minute-based scheduling (changed to `/mo 1 /ri 240`)
+- **Version Consistency**: Updated all files to version 2.9.5 for consistency
+- **README Documentation**: Fixed references to use `setup_task_scheduler.exe` instead of `.ps1` script
+- **Configuration Example**: Updated LogPath example in README to use forward slashes
+
+### Changed
+
+- **Simplified Scheduling**: Removed startup and continuous monitoring options, now only offers daily scheduled archiving
+- **User Experience**: Streamlined task scheduler setup to reduce complexity and improve reliability
+- **Documentation**: Updated README to reflect simplified scheduling options
+
+### Technical Details
+
+- **schtasks /change Command**: Removed invalid `/f` parameter from modify commands
+- **Minute-based Scheduling**: Corrected syntax from `/mo 240` to `/mo 1 /ri 240` for proper repeat intervals
+- **Command Logging**: Added command logging for better debugging of scheduled task creation
+- **Documentation Updates**: Ensured README reflects current executable-based approach
+- **Scheduling Simplification**: Removed complex startup and monitoring options to focus on reliable daily scheduling
+
+---
+
+## [2.9.3] - 2025-08-14
+
+**Author**: Ryan Zeffiretti
+
+### Fixed
+
+- **GitHub Actions Workflow**: Fixed PowerShell setup action version compatibility
+- **Release Automation**: Improved automated release process reliability
+
+### Changed
+
+- **PowerShell Version**: Updated GitHub Actions to use PowerShell 7.4 for better compatibility
+
+---
+
+## [2.9.2] - 2025-08-14
+
+**Author**: Ryan Zeffiretti
+
+### Added
+
+- **Enhanced User Interface**: Added beautiful ASCII art banners and professional styling throughout the application
+- **Visual Improvements**: Added emojis, color-coded sections, and box-drawn option menus for better user experience
+- **Professional Formatting**: Improved visual hierarchy and user guidance with consistent styling
+- **Task Scheduler Setup Script**: Created user-friendly `setup_task_scheduler.ps1` with enhanced UI/UX
+
+### Changed
+
+- **User Experience**: Significantly improved the visual appearance and usability of both main script and setup scripts
+- **Interface Design**: Added professional banners, icons, and formatting for all major user interactions
+- **Error Handling**: Enhanced error messages with visual indicators (❌ for errors, ⚠️ for warnings, ✅ for success)
+
+### Technical Details
+
+- **ASCII Art Banners**: Added professional banners for first-run setup, completion screens, and major milestones
+- **Emoji Integration**: Added relevant emojis throughout the interface for better visual communication
+- **Color Coding**: Implemented consistent color scheme for different types of information and status
+- **Box-Drawn Menus**: Created professional-looking option boxes for user choices and configuration
+
+---
+
+## [2.9.0] - 2025-08-14
+
+**Author**: Ryan Zeffiretti
+
+### Fixed
+
+- **LogPath Processing**: Fixed critical issue where LogPath was not being processed correctly from config.json
+- **Path Normalization**: Improved path processing to handle both escaped and unescaped backslashes in JSON
+- **Script Directory Variable**: Added missing `$scriptDir` variable assignment for normal operation
+- **JSON Escaping**: Fixed issue where PowerShell's `ConvertTo-Json` was escaping backslashes causing path processing failures
+
+### Technical Details
+
+- **Path Processing**: Enhanced path normalization to handle `".\\Logs"` and `"./Logs"` formats correctly
+- **Variable Assignment**: Added `$scriptDir = $installPath` for normal operation (was only set during first-run setup)
+- **Backslash Handling**: Improved handling of JSON-escaped backslashes in LogPath configuration
+- **Fallback Logic**: Added robust fallback mechanisms for path processing failures
+
+### Changed
+
+- **Default LogPath**: Changed default LogPath from `".\Logs"` to `"./Logs"` to prevent JSON escaping issues
+- **Path Processing Logic**: Enhanced path processing to handle both forward slashes and backslashes properly
+
+## [2.8.9] - 2025-08-14
+
+**Author**: Ryan Zeffiretti
+
+### Added
+
+- **Comprehensive Code Comments**: Added detailed comments throughout the script to help other developers understand and modify the code
+- **Enhanced Documentation**: Improved inline documentation with section headers, function descriptions, and logic explanations
+- **Developer-Friendly Structure**: Organized code with clear section dividers and explanatory comments
+
+### Technical Details
+
+- **Section Headers**: Added clear section dividers for major code blocks
+- **Function Documentation**: Enhanced helper functions with parameter descriptions and purpose explanations
+- **Inline Comments**: Added detailed explanations for complex logic and variable assignments
+- **Code Flow Documentation**: Documented the purpose and flow of each major section
+
 ## [2.8.8] - 2025-08-14
 
 **Author**: Ryan Zeffiretti

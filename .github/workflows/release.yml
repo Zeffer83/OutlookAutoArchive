@@ -1,0 +1,108 @@
+name: Release Outlook Auto Archive
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install PS2EXE
+        shell: powershell
+        run: |
+          Install-Module -Name PS2EXE -Force -Scope CurrentUser
+
+      - name: Build executables
+        shell: powershell
+        run: |
+          # Build main application executable
+          ps2exe -inputFile "OutlookAutoArchive.ps1" -outputFile "OutlookAutoArchive.exe" -title "Outlook Auto Archive" -version "${{ github.ref_name }}" -company "Ryan Zeffiretti" -product "Outlook Auto Archive" -copyright "Copyright (c) 2025 Ryan Zeffiretti. MIT License" -description "Automatically archives old emails from Outlook accounts" -trademark "MIT License"
+
+          # Build task scheduler setup executable
+          ps2exe -inputFile "setup_task_scheduler.ps1" -outputFile "setup_task_scheduler.exe" -title "Outlook Auto Archive - Task Scheduler Setup" -version "${{ github.ref_name }}" -company "Ryan Zeffiretti" -product "Outlook Auto Archive Task Scheduler" -copyright "Copyright (c) 2025 Ryan Zeffiretti. MIT License" -description "Setup script for Outlook Auto Archive scheduled tasks" -trademark "MIT License"
+
+      - name: Create release package
+        shell: powershell
+        run: |
+          $version = "${{ github.ref_name }}".Replace("v", "")
+          $zipName = "OutlookAutoArchive-v$version.zip"
+
+          # Create release directory
+          New-Item -ItemType Directory -Path "release" -Force
+
+          # Copy files to release directory
+          Copy-Item "OutlookAutoArchive.exe" "release/"
+          Copy-Item "OutlookAutoArchive.ps1" "release/"
+          Copy-Item "setup_task_scheduler.exe" "release/"
+          Copy-Item "setup_task_scheduler.ps1" "release/"
+          Copy-Item "README.md" "release/"
+          Copy-Item "CHANGELOG.md" "release/"
+          Copy-Item "LICENSE" "release/"
+          Copy-Item "SECURITY.md" "release/"
+          Copy-Item "CONTRIBUTING.md" "release/"
+          Copy-Item "icon.ico" "release/" -ErrorAction SilentlyContinue
+
+          # Create zip file
+          Compress-Archive -Path "release/*" -DestinationPath $zipName -Force
+
+      - name: Create Release
+        shell: powershell
+        run: |
+          $version = "${{ github.ref_name }}".Replace("v", "")
+          $zipName = "OutlookAutoArchive-v$version.zip"
+          
+          # Create release notes
+          $releaseNotes = @"
+          ## 🎉 Outlook Auto Archive ${{ github.ref_name }}
+
+          ### ✨ What's New
+
+          **Console Compatibility**: Replaced Unicode emojis with ASCII-compatible alternatives for universal display
+          **Enhanced User Interface**: Beautiful ASCII art banners and professional styling throughout the application
+          **Task Scheduler Setup**: New user-friendly setup script with enhanced UI/UX
+
+          ### 📦 Installation
+
+          1. Download the `OutlookAutoArchive.exe` file
+          2. Run the executable (Windows will attempt to unblock it automatically)
+          3. Follow the setup wizard to configure your preferences
+          4. Use `setup_task_scheduler.exe` to set up automatic scheduling
+
+          ### 🚀 Quick Start
+
+          - **Main Application**: `OutlookAutoArchive.exe` - The main archiving application
+          - **Task Scheduler Setup**: `setup_task_scheduler.exe` - Easy setup for automatic scheduling
+
+          ### 🔧 Features
+
+          - **Automatic Email Archiving**: Moves old emails to organized year/month folders
+          - **Configurable Retention**: Set how long emails stay in your Inbox (default: 14 days)
+          - **Dry-Run Mode**: Test before actually moving emails
+          - **Gmail Support**: Works with Gmail accounts using labels
+          - **Skip Rules**: Exclude specific emails from archiving
+          - **Comprehensive Logging**: Detailed logs for troubleshooting
+          - **Windows Task Scheduler**: Set up automatic archiving
+          - **Console Compatibility**: Works on all Windows systems regardless of console encoding
+
+          ### 📋 System Requirements
+
+          - Windows 10/11
+          - Microsoft Outlook (desktop app)
+          - PowerShell 5.1 or later
+
+          ### 📄 Documentation
+
+          See `README.md` for detailed usage instructions and `CHANGELOG.md` for version history.
+          "@
+          
+          # Create release using GitHub CLI
+          gh release create ${{ github.ref }} --title "Outlook Auto Archive ${{ github.ref_name }}" --notes "$releaseNotes" --draft false --prerelease false
+          
+          # Upload the zip file as an asset
+          gh release upload ${{ github.ref }} $zipName
