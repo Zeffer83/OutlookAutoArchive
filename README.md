@@ -1,6 +1,6 @@
 # Outlook Auto Archive
 
-A professional PowerShell application that automatically archives emails older than a specified number of days from your Outlook Inbox to organized year/month folders. Features beautiful UI/UX with ASCII art banners, emojis, and professional styling.
+A professional PowerShell application that automatically archives emails older than a specified number of days from your Outlook Inbox to organized year/month folders. Features beautiful UI/UX with ASCII art banners and professional styling.
 
 **Author**: Ryan Zeffiretti  
 **Version**: 2.9.5  
@@ -8,7 +8,7 @@ A professional PowerShell application that automatically archives emails older t
 
 ## ✨ Features
 
-- **🎨 Beautiful User Interface**: Professional ASCII art banners, emojis, and color-coded sections
+- **🎨 Beautiful User Interface**: Professional ASCII art banners and color-coded sections
 - **📧 Automatic Email Archiving**: Moves emails older than X days from Inbox to Archive folders
 - **📁 Organized Structure**: Creates year/month folder hierarchy (e.g., `Archive\2025\2025-08`)
 - **🛡️ Dry-Run Mode**: Test the application safely without actually moving emails
@@ -105,7 +105,7 @@ The application automatically installs to `C:\Users\[YourUsername]\OutlookAutoAr
 
 - **`OutlookAutoArchive.exe`** - Main application (recommended for all users)
 - **`setup_task_scheduler.exe`** - Task scheduler setup executable (easy to use)
-- **`setup_task_scheduler.ps1`** - Task scheduler setup script (for advanced users)
+- **`setup_task_scheduler.ps1`** - Task scheduler setup script (included in source code packages)
 - **`config.json`** - Configuration file (auto-created on first run)
 
 ### 🎯 Why Use Executables?
@@ -127,7 +127,7 @@ The application uses a `config.json` file for configuration. Edit this file to c
 {
   "RetentionDays": 14,
   "DryRun": true,
-  "LogPath": "./Logs",
+  "LogPath": ".\\Logs",
   "GmailLabel": "OutlookArchive",
   "SkipRules": [
     {
@@ -194,7 +194,7 @@ Archive/
 
 The first-run setup offers **daily scheduled archiving**:
 
-> **💡 Design Philosophy**: We've simplified the scheduling to focus on reliability and system performance. Unlike continuous monitoring solutions that stay in memory, this approach runs once per day and then completely unloads, ensuring your system remains responsive and efficient.
+> **💡 Design Philosophy**: I have simplified the scheduling to focus on reliability and system performance. Unlike continuous monitoring solutions that stay in memory, this approach runs once per day and then completely unloads, ensuring your system remains responsive and efficient.
 
 #### 📅 Daily at Specific Time
 
@@ -283,7 +283,7 @@ Check the log files in the `Logs` folder for detailed error messages and operati
 
 ## 📄 License
 
-This project is open source and available under the [MIT License](LICENSE).
+This project is open source and available under the [MIT License](LICENSE) **"AS IS"**.
 
 **Author**: Ryan Zeffiretti
 
