@@ -6,6 +6,54 @@ A professional PowerShell application that automatically archives emails older t
 **Version**: 2.9.5  
 **License**: MIT
 
+## 🤔 Why Outlook Auto Archive?
+
+### The Problem with Built-in Outlook Archiving
+
+Outlook's built-in archiving feature creates local `.pst` files that are stored on your computer's hard drive. While this works for a single machine, it creates several critical limitations:
+
+#### 🔒 Single Computer Access
+
+Archived emails are only available on the computer where they were archived. You can't access your archives from other computers with Outlook.
+
+#### 💾 Local Storage Dependency
+
+Because the archive is just another local Outlook data file, a hard-drive failure or profile corruption can render it inaccessible or lost—unless you've implemented a backup strategy for your PST files.
+
+#### 🔄 No Cross-Device Sync
+
+Local PST archives aren't part of Exchange or Microsoft 365 mailboxes. You can't open them from Outlook on a different PC or via Outlook on the web—only from the Outlook profile where they're attached.
+
+#### 📁 Disorganized Structure
+
+AutoArchive preserves whatever folder hierarchy you had in your mailbox, but it doesn't auto-generate year/month folders. All "archived" items go into the PST's existing folder tree (or the default Archive folder), not into a neat calendar-based folder structure.
+
+### The Solution
+
+Outlook Auto Archive solves these problems by:
+
+- **☁️ Cloud-Based Archiving**: Moves emails to your existing Outlook folders that sync across all your devices
+- **📱 Multi-Device Access**: Access your archived emails from any computer with Outlook installed
+- **📂 Organized Structure**: Creates clean year/month folder hierarchies (e.g., `Archive\2025\2025-08`)
+- **🔄 Automatic Sync**: Leverages your existing Outlook sync to make archives available everywhere
+- **⚡ Lightweight**: No additional storage or complex setup required
+- **🛡️ Data Safety**: Uses your existing cloud backup and sync infrastructure
+- **🧹 Clean Inbox**: Automatically moves old emails out of your inbox to keep it organized and clutter-free
+
+### Alternatives to Consider
+
+- **Exchange Online Archive**: A server-side archive mailbox that syncs across devices (requires Microsoft 365)
+- **Third-Party Tools**: Solutions like Clean Email can auto-archive into structured folders or cloud storage
+- **Manual PST Management**: You can create separate PSTs per year/month yourself, but it's a manual process
+
+### Perfect For
+
+- **🏢 Business Users** who need access to archived emails across multiple workstations
+- **🏠 Home Users** with multiple computers who want consistent email access
+- **📱 Remote Workers** who switch between office and home computers
+- **💼 Anyone** who wants better organized email archives that sync automatically
+- **🛡️ Data-Conscious Users** who want to avoid local PST file risks
+
 ## ✨ Features
 
 - **🎨 Beautiful User Interface**: Professional ASCII art banners and color-coded sections
