@@ -21,11 +21,14 @@ jobs:
       - name: Build executables
         shell: powershell
         run: |
+          # Extract version number without 'v' prefix
+          $version = "${{ github.ref_name }}".Replace("v", "")
+          
           # Build main application executable
-          ps2exe -inputFile "OutlookAutoArchive.ps1" -outputFile "OutlookAutoArchive.exe" -title "Outlook Auto Archive" -version "${{ github.ref_name }}" -company "Ryan Zeffiretti" -product "Outlook Auto Archive" -copyright "Copyright (c) 2025 Ryan Zeffiretti. MIT License" -description "Automatically archives old emails from Outlook accounts" -trademark "MIT License"
+          ps2exe -inputFile "OutlookAutoArchive.ps1" -outputFile "OutlookAutoArchive.exe" -title "Outlook Auto Archive" -version "$version" -company "Ryan Zeffiretti" -product "Outlook Auto Archive" -copyright "Copyright (c) 2025 Ryan Zeffiretti. MIT License" -description "Automatically archives old emails from Outlook accounts" -trademark "MIT License"
 
           # Build task scheduler setup executable
-          ps2exe -inputFile "setup_task_scheduler.ps1" -outputFile "setup_task_scheduler.exe" -title "Outlook Auto Archive - Task Scheduler Setup" -version "${{ github.ref_name }}" -company "Ryan Zeffiretti" -product "Outlook Auto Archive Task Scheduler" -copyright "Copyright (c) 2025 Ryan Zeffiretti. MIT License" -description "Setup script for Outlook Auto Archive scheduled tasks" -trademark "MIT License"
+          ps2exe -inputFile "setup_task_scheduler.ps1" -outputFile "setup_task_scheduler.exe" -title "Outlook Auto Archive - Task Scheduler Setup" -version "$version" -company "Ryan Zeffiretti" -product "Outlook Auto Archive Task Scheduler" -copyright "Copyright (c) 2025 Ryan Zeffiretti. MIT License" -description "Setup script for Outlook Auto Archive scheduled tasks" -trademark "MIT License"
 
       - name: Create release package
         shell: powershell
