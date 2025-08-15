@@ -25,7 +25,7 @@ jobs:
         run: |
           # Extract version number without 'v' prefix
           $version = "${{ github.ref_name }}".Replace("v", "")
-          
+
           # Build main application executable
           ps2exe -inputFile "OutlookAutoArchive.ps1" -outputFile "OutlookAutoArchive.exe" -title "Outlook Auto Archive" -version "$version" -company "Ryan Zeffiretti" -product "Outlook Auto Archive" -copyright "Copyright (c) 2025 Ryan Zeffiretti. MIT License" -description "Automatically archives old emails from Outlook accounts" -trademark "MIT License"
 
@@ -61,7 +61,7 @@ jobs:
         run: |
           $version = "${{ github.ref_name }}".Replace("v", "")
           $zipName = "OutlookAutoArchive-v$version.zip"
-          
+
           # Create release notes
           $releaseNotes = @"
           ## 🎉 Outlook Auto Archive ${{ github.ref_name }}
@@ -105,9 +105,9 @@ jobs:
 
           See `README.md` for detailed usage instructions and `CHANGELOG.md` for version history.
           "@
-          
+
           # Create release using GitHub CLI
-          gh release create ${{ github.ref }} --title "Outlook Auto Archive ${{ github.ref_name }}" --notes "$releaseNotes" --draft false --prerelease false
-          
+          gh release create ${{ github.ref }} --title "Outlook Auto Archive ${{ github.ref_name }}" --notes "$releaseNotes"
+
           # Upload the zip file as an asset
           gh release upload ${{ github.ref }} $zipName
