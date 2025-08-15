@@ -104,6 +104,7 @@ The application automatically installs to `C:\Users\[YourUsername]\OutlookAutoAr
 ### Files Included
 
 - **`OutlookAutoArchive.exe`** - Main application (recommended for all users)
+- **`OutlookAutoArchive.ps1`** - Main application script (included in source code packages)
 - **`setup_task_scheduler.exe`** - Task scheduler setup executable (easy to use)
 - **`setup_task_scheduler.ps1`** - Task scheduler setup script (included in source code packages)
 - **`config.json`** - Configuration file (auto-created on first run)
