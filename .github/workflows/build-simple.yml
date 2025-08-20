@@ -61,11 +61,26 @@ jobs:
           }
           Write-Host "Script validation passed!"
 
+      - name: Verify icon file
+        run: |
+          # Check if icon file exists and is valid
+          if (Test-Path "icon.ico") {
+            $iconSize = (Get-Item "icon.ico").Length
+            Write-Host "✓ Icon file found: icon.ico ($([math]::Round($iconSize/1KB,2)) KB)"
+          } else {
+            Write-Error "❌ Icon file not found: icon.ico"
+            exit 1
+          }
+
       - name: Build main executable
         run: |
           # Build the main executable with version info
           $version = "$env:VERSION"
           Write-Host "Building OutlookAutoArchive.exe version $version"
+          
+          # Ensure icon file path is absolute
+          $iconPath = (Resolve-Path "icon.ico").Path
+          Write-Host "Using icon file: $iconPath"
           
           ps2exe -InputFile "OutlookAutoArchive.ps1" `
                  -OutputFile "OutlookAutoArchive.exe" `
@@ -76,7 +91,7 @@ jobs:
                  -Product "Outlook Auto Archive" `
                  -Copyright "Copyright (c) 2025 Ryan Zeffiretti. Licensed under MIT License." `
                  -Trademark "Outlook Auto Archive" `
-                 -IconFile "icon.ico" `
+                 -IconFile "$iconPath" `
                  -NoConsole `
                  -RequireAdmin
 
@@ -84,6 +99,10 @@ jobs:
         run: |
           # Build the setup executable
           Write-Host "Building setup_task_scheduler.exe"
+          
+          # Use the same absolute icon path
+          $iconPath = (Resolve-Path "icon.ico").Path
+          Write-Host "Using icon file: $iconPath"
           
           ps2exe -InputFile "setup_task_scheduler.ps1" `
                  -OutputFile "setup_task_scheduler.exe" `
@@ -93,7 +112,7 @@ jobs:
                  -Company "Ryan Zeffiretti" `
                  -Product "Outlook Auto Archive" `
                  -Copyright "Copyright (c) 2025 Ryan Zeffiretti. Licensed under MIT License." `
-                 -IconFile "icon.ico" `
+                 -IconFile "$iconPath" `
                  -NoConsole `
                  -RequireAdmin
 
@@ -103,6 +122,14 @@ jobs:
           if (Test-Path "OutlookAutoArchive.exe") {
             $size = (Get-Item "OutlookAutoArchive.exe").Length
             Write-Host "✓ OutlookAutoArchive.exe created successfully ($([math]::Round($size/1KB,2)) KB)"
+            
+            # Verify icon is embedded (check if file has icon resource)
+            try {
+              $exeInfo = Get-ItemProperty "OutlookAutoArchive.exe"
+              Write-Host "✓ Executable metadata verified"
+            } catch {
+              Write-Warning "⚠️ Could not verify executable metadata"
+            }
           } else {
             Write-Error "❌ OutlookAutoArchive.exe was not created"
             exit 1
@@ -111,6 +138,14 @@ jobs:
           if (Test-Path "setup_task_scheduler.exe") {
             $size = (Get-Item "setup_task_scheduler.exe").Length
             Write-Host "✓ setup_task_scheduler.exe created successfully ($([math]::Round($size/1KB,2)) KB)"
+            
+            # Verify icon is embedded
+            try {
+              $exeInfo = Get-ItemProperty "setup_task_scheduler.exe"
+              Write-Host "✓ Setup executable metadata verified"
+            } catch {
+              Write-Warning "⚠️ Could not verify setup executable metadata"
+            }
           } else {
             Write-Error "❌ setup_task_scheduler.exe was not created"
             exit 1

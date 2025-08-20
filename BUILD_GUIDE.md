@@ -164,6 +164,12 @@ If you prefer to build locally or need to customize the build process:
    - Consider using UPX compression for release builds
    - Monitor size trends over versions
 
+5. **Icon Not Embedding**:
+   - Ensure icon.ico file exists and is valid
+   - Use absolute paths for icon file in PS2EXE
+   - Run test-icon-embedding.ps1 to verify icon embedding
+   - Check that icon file is not corrupted or invalid format
+
 ### Build Verification:
 
 ```powershell
@@ -172,6 +178,9 @@ Get-ItemProperty "OutlookAutoArchive.exe" | Select-Object Name, Length, VersionI
 
 # Test executable
 Start-Process "OutlookAutoArchive.exe" -Wait
+
+# Test icon embedding (run the test script)
+.\test-icon-embedding.ps1 -Version "2.9.6"
 ```
 
 ## 📊 Build Metrics
