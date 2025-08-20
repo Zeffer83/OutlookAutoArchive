@@ -1,0 +1,56 @@
+name: Repository Cleanup
+
+on:
+  schedule:
+    # Run monthly on the first day at 2 AM UTC
+    - cron: '0 2 1 * *'
+  workflow_dispatch: # Allow manual triggering
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Clean up old branches
+        run: |
+          # Remove references to deleted remote branches
+          git remote prune origin
+          
+          # Clean up local branches that no longer exist on remote
+          git branch -vv | grep ': gone]' | awk '{print $1}' | xargs -r git branch -D
+          
+          # Clean up any stale remote-tracking branches
+          git remote prune origin
+
+      - name: Optimize repository
+        run: |
+          # Aggressive garbage collection
+          git gc --aggressive --prune=now
+          
+          # Repack objects for better compression
+          git repack -a -d --depth=250 --window=250
+          
+          # Clean up reflog entries older than 30 days
+          git reflog expire --expire=30.days.ago --expire-unreachable=30.days.ago --all
+          
+          # Final garbage collection
+          git gc --prune=now
+
+      - name: Check repository size
+        run: |
+          echo "Repository size after cleanup:"
+          du -sh .git
+          echo "Number of objects:"
+          git count-objects -vH
+
+      - name: Create cleanup summary
+        run: |
+          echo "## Repository Cleanup Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- Garbage collection completed" >> $GITHUB_STEP_SUMMARY
+          echo "- Old branches cleaned up" >> $GITHUB_STEP_SUMMARY
+          echo "- Repository optimized for size" >> $GITHUB_STEP_SUMMARY
+          echo "- Reflog entries older than 30 days removed" >> $GITHUB_STEP_SUMMARY

@@ -1,0 +1,48 @@
+name: Optimize Release Assets
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  optimize-assets:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download release assets
+        run: |
+          # Get the latest release assets
+          gh release download --repo ${{ github.repository }} --pattern "*.exe" --pattern "*.ps1" --pattern "*.ico"
+          
+      - name: Optimize executable size
+        run: |
+          # Check if UPX is available for compression
+          if command -v upx &> /dev/null; then
+            echo "Compressing executables with UPX..."
+            upx --best --ultra-brute *.exe || echo "UPX compression failed, keeping original"
+          else
+            echo "UPX not available, skipping compression"
+          fi
+          
+      - name: Create optimized release
+        run: |
+          # Create a new optimized release
+          gh release create "v${{ github.event.release.tag_name }}-optimized" \
+            --title "Optimized Release - ${{ github.event.release.name }}" \
+            --notes "Optimized version of ${{ github.event.release.name }} with reduced file sizes" \
+            --repo ${{ github.repository }}
+            
+      - name: Upload optimized assets
+        run: |
+          # Upload the optimized files
+          gh release upload "v${{ github.event.release.tag_name }}-optimized" *.exe *.ps1 *.ico --repo ${{ github.repository }}
+          
+      - name: Report optimization results
+        run: |
+          echo "## Asset Optimization Summary" >> $GITHUB_STEP_SUMMARY
+          echo "Original release: ${{ github.event.release.name }}" >> $GITHUB_STEP_SUMMARY
+          echo "Optimized release: v${{ github.event.release.tag_name }}-optimized" >> $GITHUB_STEP_SUMMARY
+          echo "- Executables compressed with UPX (if available)" >> $GITHUB_STEP_SUMMARY
+          echo "- Reduced download sizes for end users" >> $GITHUB_STEP_SUMMARY

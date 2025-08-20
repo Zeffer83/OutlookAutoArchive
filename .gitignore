@@ -69,3 +69,48 @@ docs/.doctrees/
 ._*
 .Spotlight-V100
 .Trashes
+
+# Additional optimization entries
+# Build artifacts
+build/
+dist/
+out/
+
+# Cache directories
+.cache/
+*.cache
+
+# Temporary build files
+*.pdb
+*.obj
+*.o
+
+# PowerShell module cache
+PowerShell/
+
+# Windows event logs
+*.evtx
+
+# Performance monitoring files
+*.perf
+
+# Crash dumps
+*.dmp
+*.mdmp
+
+# Symbol files
+*.pdb
+*.dbg
+
+# Compressed files that shouldn't be tracked
+*.7z
+*.gz
+*.bz2
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Lock files
+*.lock
