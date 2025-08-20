@@ -85,8 +85,8 @@ jobs:
 
           Write-Host "✓ All required modules verified"
 
-       # Note: Script validation removed due to PSScriptAnalyzer warnings
-       # The script has been tested and works correctly
+        # Note: Script validation removed due to PSScriptAnalyzer warnings
+        # The script has been tested and works correctly
 
       - name: Verify icon file
         run: |
@@ -232,7 +232,6 @@ jobs:
             README.md
             LICENSE
             CHANGELOG.md
-            config_example.json
             OutlookAutoArchive-v${{ steps.version.outputs.version }}.zip
           body: |
             ## Outlook Auto Archive v${{ steps.version.outputs.version }}
@@ -243,7 +242,6 @@ jobs:
             - **OutlookAutoArchive.ps1** - Source PowerShell script
             - **setup_task_scheduler.ps1** - Setup script source
             - **icon.ico** - Application icon
-            - **config_example.json** - Configuration template
             - **Complete package ZIP** - All files bundled together
 
             ### 🚀 Quick Start
