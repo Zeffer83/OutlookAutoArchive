@@ -3,15 +3,15 @@ name: Auto Build and Release
 on:
   push:
     tags:
-      - 'v*'  # Trigger on version tags
+      - "v*" # Trigger on version tags
   workflow_dispatch: # Allow manual triggering
     inputs:
       version:
-        description: 'Version number (e.g., 2.9.6)'
+        description: "Version number (e.g., 2.9.6)"
         required: true
-        default: '2.9.6'
+        default: "2.9.6"
       create_tag:
-        description: 'Create and push a new tag'
+        description: "Create and push a new tag"
         required: false
         default: false
         type: boolean
@@ -36,15 +36,8 @@ jobs:
             echo "version=$VERSION" >> $env:GITHUB_OUTPUT
           }
 
-      - name: Create tag (if requested)
-        if: github.event_name == 'workflow_dispatch' && github.event.inputs.create_tag == 'true'
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git tag -a "v${{ steps.version.outputs.version }}" -m "Release v${{ steps.version.outputs.version }}"
-          git push origin "v${{ steps.version.outputs.version }}"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+             # Note: Tag creation removed due to permission issues
+       # To create a release, manually create a tag: git tag -a v2.9.6 -m "Release v2.9.6" && git push origin v2.9.6
 
       - name: Check PowerShell environment
         run: |
@@ -59,7 +52,7 @@ jobs:
         run: |
           # Set execution policy to allow module installation
           Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
-          
+
           # Install required PowerShell modules
           try {
             Write-Host "Installing PS2EXE module..."
@@ -69,7 +62,7 @@ jobs:
             Write-Error "❌ Failed to install PS2EXE module: $($_.Exception.Message)"
             exit 1
           }
-          
+
           try {
             Write-Host "Installing PSScriptAnalyzer module..."
             Install-Module -Name PSScriptAnalyzer -Force -Scope CurrentUser -ErrorAction Stop
@@ -78,18 +71,18 @@ jobs:
             Write-Error "❌ Failed to install PSScriptAnalyzer module: $($_.Exception.Message)"
             exit 1
           }
-          
+
           # Verify modules are available
           if (-not (Get-Module -ListAvailable -Name PS2EXE)) {
             Write-Error "❌ PS2EXE module not found after installation"
             exit 1
           }
-          
+
           if (-not (Get-Module -ListAvailable -Name PSScriptAnalyzer)) {
             Write-Error "❌ PSScriptAnalyzer module not found after installation"
             exit 1
           }
-          
+
           Write-Host "✓ All required modules verified"
 
       - name: Validate PowerShell script
@@ -125,11 +118,11 @@ jobs:
           # Build the main executable with version info
           $version = "$env:VERSION"
           Write-Host "Building OutlookAutoArchive.exe version $version"
-          
+
           # Ensure icon file path is absolute
           $iconPath = (Resolve-Path "icon.ico").Path
           Write-Host "Using icon file: $iconPath"
-          
+
           try {
             ps2exe -InputFile "OutlookAutoArchive.ps1" `
                    -OutputFile "OutlookAutoArchive.exe" `
@@ -155,11 +148,11 @@ jobs:
         run: |
           # Build the setup executable
           Write-Host "Building setup_task_scheduler.exe"
-          
+
           # Use the same absolute icon path
           $iconPath = (Resolve-Path "icon.ico").Path
           Write-Host "Using icon file: $iconPath"
-          
+
           try {
             ps2exe -InputFile "setup_task_scheduler.ps1" `
                    -OutputFile "setup_task_scheduler.exe" `
@@ -198,7 +191,7 @@ jobs:
             Write-Error "❌ OutlookAutoArchive.exe was not created"
             exit 1
           }
-          
+
           if (Test-Path "setup_task_scheduler.exe") {
             $size = (Get-Item "setup_task_scheduler.exe").Length
             Write-Host "✓ setup_task_scheduler.exe created successfully ($([math]::Round($size/1KB,2)) KB)"
@@ -220,7 +213,7 @@ jobs:
           # Create a release directory with all necessary files
           $releaseDir = "OutlookAutoArchive-v$env:VERSION"
           New-Item -ItemType Directory -Path $releaseDir -Force
-          
+
           # Copy files to release directory
           Copy-Item "OutlookAutoArchive.exe" $releaseDir/
           Copy-Item "setup_task_scheduler.exe" $releaseDir/
@@ -230,14 +223,14 @@ jobs:
           Copy-Item "README.md" $releaseDir/
           Copy-Item "LICENSE" $releaseDir/
           Copy-Item "CHANGELOG.md" $releaseDir/
-          
+
           # Create a simple config example
           $configExample = '{"DryRun": true,"ArchiveFolders": [],"LogPath": "","InstallPath": ""}'
           $configExample | Out-File -FilePath "$releaseDir/config_example.json" -Encoding UTF8
-          
+
           # Create ZIP archive
           Compress-Archive -Path $releaseDir -DestinationPath "$releaseDir.zip" -Force
-          
+
           Write-Host "✓ Release package created: $releaseDir.zip"
 
       - name: Create Release
@@ -257,7 +250,7 @@ jobs:
             OutlookAutoArchive-v${{ steps.version.outputs.version }}.zip
           body: |
             ## Outlook Auto Archive v${{ steps.version.outputs.version }}
-            
+
             ### 📦 What's Included
             - **OutlookAutoArchive.exe** - Main application (compiled from PowerShell)
             - **setup_task_scheduler.exe** - Task scheduler setup utility
@@ -266,28 +259,28 @@ jobs:
             - **icon.ico** - Application icon
             - **config_example.json** - Configuration template
             - **Complete package ZIP** - All files bundled together
-            
+
             ### 🚀 Quick Start
             1. Download and extract the files
             2. Run `OutlookAutoArchive.exe` for first-time setup
             3. Follow the interactive setup process
             4. Configure your archive preferences
-            
+
             ### 📋 System Requirements
             - Windows 10/11
             - Microsoft Outlook (desktop version)
             - PowerShell 5.1 or later
-            
+
             ### 🔧 Features
             - Automatic email archiving
             - Gmail label support
             - Scheduled task integration
             - Dry-run mode for testing
             - Comprehensive logging
-            
+
             ### 📄 Documentation
             See README.md for detailed installation and usage instructions.
-            
+
             ### 📝 Changelog
             See CHANGELOG.md for version history and changes.
           draft: false
