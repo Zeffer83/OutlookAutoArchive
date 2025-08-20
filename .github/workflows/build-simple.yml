@@ -26,15 +26,15 @@ jobs:
       - name: Set version
         id: version
         run: |
-          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-            echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
-            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
-          else
+          if ("${{ github.event_name }}" -eq "workflow_dispatch") {
+            echo "VERSION=${{ github.event.inputs.version }}" >> $env:GITHUB_ENV
+            echo "version=${{ github.event.inputs.version }}" >> $env:GITHUB_OUTPUT
+          } else {
             # Extract version from tag (remove 'v' prefix)
-            VERSION=${GITHUB_REF#refs/tags/v}
-            echo "VERSION=$VERSION" >> $GITHUB_ENV
-            echo "version=$VERSION" >> $GITHUB_OUTPUT
-          fi
+            $VERSION = "${{ github.ref }}" -replace "refs/tags/v", ""
+            echo "VERSION=$VERSION" >> $env:GITHUB_ENV
+            echo "version=$VERSION" >> $env:GITHUB_OUTPUT
+          }
 
       - name: Create tag (if requested)
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.create_tag == 'true'
@@ -44,22 +44,68 @@ jobs:
           git tag -a "v${{ steps.version.outputs.version }}" -m "Release v${{ steps.version.outputs.version }}"
           git push origin "v${{ steps.version.outputs.version }}"
 
+      - name: Check PowerShell environment
+        run: |
+          # Check PowerShell version and environment
+          Write-Host "PowerShell Version: $($PSVersionTable.PSVersion)"
+          Write-Host "PowerShell Edition: $($PSVersionTable.PSEdition)"
+          Write-Host "OS: $($PSVersionTable.OS)"
+          Write-Host "Current Directory: $(Get-Location)"
+          Write-Host "Execution Policy: $(Get-ExecutionPolicy -Scope CurrentUser)"
+
       - name: Install PowerShell modules
         run: |
+          # Set execution policy to allow module installation
+          Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
+          
           # Install required PowerShell modules
-          Install-Module -Name PS2EXE -Force -Scope CurrentUser
-          Install-Module -Name PSScriptAnalyzer -Force -Scope CurrentUser
+          try {
+            Write-Host "Installing PS2EXE module..."
+            Install-Module -Name PS2EXE -Force -Scope CurrentUser -ErrorAction Stop
+            Write-Host "✓ PS2EXE module installed successfully"
+          } catch {
+            Write-Error "❌ Failed to install PS2EXE module: $($_.Exception.Message)"
+            exit 1
+          }
+          
+          try {
+            Write-Host "Installing PSScriptAnalyzer module..."
+            Install-Module -Name PSScriptAnalyzer -Force -Scope CurrentUser -ErrorAction Stop
+            Write-Host "✓ PSScriptAnalyzer module installed successfully"
+          } catch {
+            Write-Error "❌ Failed to install PSScriptAnalyzer module: $($_.Exception.Message)"
+            exit 1
+          }
+          
+          # Verify modules are available
+          if (-not (Get-Module -ListAvailable -Name PS2EXE)) {
+            Write-Error "❌ PS2EXE module not found after installation"
+            exit 1
+          }
+          
+          if (-not (Get-Module -ListAvailable -Name PSScriptAnalyzer)) {
+            Write-Error "❌ PSScriptAnalyzer module not found after installation"
+            exit 1
+          }
+          
+          Write-Host "✓ All required modules verified"
 
       - name: Validate PowerShell script
         run: |
           # Run PSScriptAnalyzer to check for issues
-          $results = Invoke-ScriptAnalyzer -Path "OutlookAutoArchive.ps1" -Settings PSGallery
-          if ($results.Count -gt 0) {
-            Write-Host "Script analysis found issues:"
-            $results | Format-Table -AutoSize
+          try {
+            Write-Host "Running PSScriptAnalyzer..."
+            $results = Invoke-ScriptAnalyzer -Path "OutlookAutoArchive.ps1" -Settings PSGallery -ErrorAction Stop
+            if ($results.Count -gt 0) {
+              Write-Host "Script analysis found issues:"
+              $results | Format-Table -AutoSize
+              exit 1
+            }
+            Write-Host "✓ Script validation passed!"
+          } catch {
+            Write-Error "❌ Script validation failed: $($_.Exception.Message)"
             exit 1
           }
-          Write-Host "Script validation passed!"
 
       - name: Verify icon file
         run: |
@@ -82,18 +128,26 @@ jobs:
           $iconPath = (Resolve-Path "icon.ico").Path
           Write-Host "Using icon file: $iconPath"
           
-          ps2exe -InputFile "OutlookAutoArchive.ps1" `
-                 -OutputFile "OutlookAutoArchive.exe" `
-                 -Version "$version" `
-                 -Title "Outlook Auto Archive" `
-                 -Description "Automatic email archiving functionality" `
-                 -Company "Ryan Zeffiretti" `
-                 -Product "Outlook Auto Archive" `
-                 -Copyright "Copyright (c) 2025 Ryan Zeffiretti. Licensed under MIT License." `
-                 -Trademark "Outlook Auto Archive" `
-                 -IconFile "$iconPath" `
-                 -NoConsole `
-                 -RequireAdmin
+          try {
+            ps2exe -InputFile "OutlookAutoArchive.ps1" `
+                   -OutputFile "OutlookAutoArchive.exe" `
+                   -Version "$version" `
+                   -Title "Outlook Auto Archive" `
+                   -Description "Automatic email archiving functionality" `
+                   -Company "Ryan Zeffiretti" `
+                   -Product "Outlook Auto Archive" `
+                   -Copyright "Copyright (c) 2025 Ryan Zeffiretti. Licensed under MIT License." `
+                   -Trademark "Outlook Auto Archive" `
+                   -IconFile "$iconPath" `
+                   -NoConsole `
+                   -RequireAdmin `
+                   -ErrorAction Stop
+            
+            Write-Host "✓ Main executable build completed"
+          } catch {
+            Write-Error "❌ Failed to build main executable: $($_.Exception.Message)"
+            exit 1
+          }
 
       - name: Build setup executable
         run: |
@@ -104,17 +158,25 @@ jobs:
           $iconPath = (Resolve-Path "icon.ico").Path
           Write-Host "Using icon file: $iconPath"
           
-          ps2exe -InputFile "setup_task_scheduler.ps1" `
-                 -OutputFile "setup_task_scheduler.exe" `
-                 -Version "$env:VERSION" `
-                 -Title "Outlook Auto Archive Setup" `
-                 -Description "Task scheduler setup utility" `
-                 -Company "Ryan Zeffiretti" `
-                 -Product "Outlook Auto Archive" `
-                 -Copyright "Copyright (c) 2025 Ryan Zeffiretti. Licensed under MIT License." `
-                 -IconFile "$iconPath" `
-                 -NoConsole `
-                 -RequireAdmin
+          try {
+            ps2exe -InputFile "setup_task_scheduler.ps1" `
+                   -OutputFile "setup_task_scheduler.exe" `
+                   -Version "$env:VERSION" `
+                   -Title "Outlook Auto Archive Setup" `
+                   -Description "Task scheduler setup utility" `
+                   -Company "Ryan Zeffiretti" `
+                   -Product "Outlook Auto Archive" `
+                   -Copyright "Copyright (c) 2025 Ryan Zeffiretti. Licensed under MIT License." `
+                   -IconFile "$iconPath" `
+                   -NoConsole `
+                   -RequireAdmin `
+                   -ErrorAction Stop
+            
+            Write-Host "✓ Setup executable build completed"
+          } catch {
+            Write-Error "❌ Failed to build setup executable: $($_.Exception.Message)"
+            exit 1
+          }
 
       - name: Verify executables
         run: |

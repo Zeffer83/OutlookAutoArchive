@@ -1,0 +1,185 @@
+name: Build Fallback (Simplified)
+
+on:
+  workflow_dispatch: # Manual trigger only
+    inputs:
+      version:
+        description: 'Version number (e.g., 2.9.6)'
+        required: true
+        default: '2.9.6'
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set version
+        id: version
+        run: |
+          echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
+          echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+
+      - name: Check environment
+        run: |
+          Write-Host "=== Environment Check ==="
+          Write-Host "PowerShell Version: $($PSVersionTable.PSVersion)"
+          Write-Host "PowerShell Edition: $($PSVersionTable.PSEdition)"
+          Write-Host "OS: $($PSVersionTable.OS)"
+          Write-Host "Current Directory: $(Get-Location)"
+          Write-Host "Files in directory:"
+          Get-ChildItem | Select-Object Name, Length | Format-Table
+
+      - name: Set execution policy
+        run: |
+          Write-Host "Setting execution policy..."
+          Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
+          Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
+          Write-Host "Execution policy set"
+
+      - name: Install PS2EXE (simple method)
+        run: |
+          Write-Host "Installing PS2EXE..."
+          try {
+            Install-Module -Name PS2EXE -Force -Scope CurrentUser -ErrorAction Stop
+            Write-Host "✓ PS2EXE installed"
+          } catch {
+            Write-Host "Trying alternative installation method..."
+            [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+            Install-Module -Name PS2EXE -Force -Scope CurrentUser -Repository PSGallery
+            Write-Host "✓ PS2EXE installed (alternative method)"
+          }
+
+      - name: Verify PS2EXE
+        run: |
+          Write-Host "Verifying PS2EXE..."
+          $module = Get-Module -ListAvailable -Name PS2EXE
+          if ($module) {
+            Write-Host "✓ PS2EXE found: $($module.Version)"
+          } else {
+            Write-Error "❌ PS2EXE not found"
+            exit 1
+          }
+
+      - name: Check files
+        run: |
+          Write-Host "=== File Check ==="
+          Write-Host "Checking required files..."
+          
+          $files = @("OutlookAutoArchive.ps1", "setup_task_scheduler.ps1", "icon.ico")
+          foreach ($file in $files) {
+            if (Test-Path $file) {
+              $size = (Get-Item $file).Length
+              Write-Host "✓ $file found ($([math]::Round($size/1KB,2)) KB)"
+            } else {
+              Write-Error "❌ $file not found"
+              exit 1
+            }
+          }
+
+      - name: Simple build test
+        run: |
+          Write-Host "=== Simple Build Test ==="
+          
+          # Test basic PS2EXE functionality
+          try {
+            Write-Host "Testing PS2EXE with minimal parameters..."
+            ps2exe -InputFile "OutlookAutoArchive.ps1" -OutputFile "test.exe" -ErrorAction Stop
+            if (Test-Path "test.exe") {
+              $size = (Get-Item "test.exe").Length
+              Write-Host "✓ Basic build test passed ($([math]::Round($size/1KB,2)) KB)"
+              Remove-Item "test.exe" -Force
+            } else {
+              Write-Error "❌ Basic build test failed - no output file"
+              exit 1
+            }
+          } catch {
+            Write-Error "❌ Basic build test failed: $($_.Exception.Message)"
+            exit 1
+          }
+
+      - name: Build with icon (step by step)
+        run: |
+          Write-Host "=== Building with Icon ==="
+          
+          $version = "$env:VERSION"
+          $iconPath = (Resolve-Path "icon.ico").Path
+          
+          Write-Host "Version: $version"
+          Write-Host "Icon path: $iconPath"
+          
+          # Build main executable
+          Write-Host "Building main executable..."
+          ps2exe -InputFile "OutlookAutoArchive.ps1" `
+                 -OutputFile "OutlookAutoArchive.exe" `
+                 -Version "$version" `
+                 -IconFile "$iconPath" `
+                 -NoConsole
+          
+          if (Test-Path "OutlookAutoArchive.exe") {
+            $size = (Get-Item "OutlookAutoArchive.exe").Length
+            Write-Host "✓ Main executable created ($([math]::Round($size/1KB,2)) KB)"
+          } else {
+            Write-Error "❌ Main executable not created"
+            exit 1
+          }
+          
+          # Build setup executable
+          Write-Host "Building setup executable..."
+          ps2exe -InputFile "setup_task_scheduler.ps1" `
+                 -OutputFile "setup_task_scheduler.exe" `
+                 -Version "$version" `
+                 -IconFile "$iconPath" `
+                 -NoConsole
+          
+          if (Test-Path "setup_task_scheduler.exe") {
+            $size = (Get-Item "setup_task_scheduler.exe").Length
+            Write-Host "✓ Setup executable created ($([math]::Round($size/1KB,2)) KB)"
+          } else {
+            Write-Error "❌ Setup executable not created"
+            exit 1
+          }
+
+      - name: Create simple package
+        run: |
+          Write-Host "=== Creating Package ==="
+          
+          $releaseDir = "OutlookAutoArchive-v$env:VERSION"
+          New-Item -ItemType Directory -Path $releaseDir -Force
+          
+          # Copy essential files only
+          Copy-Item "OutlookAutoArchive.exe" $releaseDir/
+          Copy-Item "setup_task_scheduler.exe" $releaseDir/
+          Copy-Item "OutlookAutoArchive.ps1" $releaseDir/
+          Copy-Item "setup_task_scheduler.ps1" $releaseDir/
+          Copy-Item "icon.ico" $releaseDir/
+          Copy-Item "README.md" $releaseDir/
+          
+          # Create ZIP
+          Compress-Archive -Path $releaseDir -DestinationPath "$releaseDir.zip" -Force
+          
+          Write-Host "✓ Package created: $releaseDir.zip"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: fallback-build-v${{ steps.version.outputs.version }}
+          path: |
+            OutlookAutoArchive.exe
+            setup_task_scheduler.exe
+            OutlookAutoArchive-v${{ steps.version.outputs.version }}.zip
+          retention-days: 30
+
+      - name: Success summary
+        run: |
+          echo "## Fallback Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** ${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Status:** ✅ Successful (Fallback Method)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Files Created:" >> $GITHUB_STEP_SUMMARY
+          echo "- OutlookAutoArchive.exe" >> $GITHUB_STEP_SUMMARY
+          echo "- setup_task_scheduler.exe" >> $GITHUB_STEP_SUMMARY
+          echo "- Complete package ZIP" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "This was built using the simplified fallback method." >> $GITHUB_STEP_SUMMARY
