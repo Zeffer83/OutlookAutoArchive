@@ -1,0 +1,227 @@
+name: Auto Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'  # Trigger on version tags
+  workflow_dispatch: # Allow manual triggering
+    inputs:
+      version:
+        description: 'Version number (e.g., 2.9.6)'
+        required: true
+        default: '2.9.6'
+      create_tag:
+        description: 'Create and push a new tag'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
+            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            # Extract version from tag (remove 'v' prefix)
+            VERSION=${GITHUB_REF#refs/tags/v}
+            echo "VERSION=$VERSION" >> $GITHUB_ENV
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create tag (if requested)
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.create_tag == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git tag -a "v${{ steps.version.outputs.version }}" -m "Release v${{ steps.version.outputs.version }}"
+          git push origin "v${{ steps.version.outputs.version }}"
+
+      - name: Install PowerShell modules
+        run: |
+          # Install required PowerShell modules
+          Install-Module -Name PS2EXE -Force -Scope CurrentUser
+          Install-Module -Name PSScriptAnalyzer -Force -Scope CurrentUser
+
+      - name: Validate PowerShell script
+        run: |
+          # Run PSScriptAnalyzer to check for issues
+          $results = Invoke-ScriptAnalyzer -Path "OutlookAutoArchive.ps1" -Settings PSGallery
+          if ($results.Count -gt 0) {
+            Write-Host "Script analysis found issues:"
+            $results | Format-Table -AutoSize
+            exit 1
+          }
+          Write-Host "Script validation passed!"
+
+      - name: Build main executable
+        run: |
+          # Build the main executable with version info
+          $version = "$env:VERSION"
+          Write-Host "Building OutlookAutoArchive.exe version $version"
+          
+          ps2exe -InputFile "OutlookAutoArchive.ps1" `
+                 -OutputFile "OutlookAutoArchive.exe" `
+                 -Version "$version" `
+                 -Title "Outlook Auto Archive" `
+                 -Description "Automatic email archiving functionality" `
+                 -Company "Ryan Zeffiretti" `
+                 -Product "Outlook Auto Archive" `
+                 -Copyright "Copyright (c) 2025 Ryan Zeffiretti. Licensed under MIT License." `
+                 -Trademark "Outlook Auto Archive" `
+                 -IconFile "icon.ico" `
+                 -NoConsole `
+                 -RequireAdmin
+
+      - name: Build setup executable
+        run: |
+          # Build the setup executable
+          Write-Host "Building setup_task_scheduler.exe"
+          
+          ps2exe -InputFile "setup_task_scheduler.ps1" `
+                 -OutputFile "setup_task_scheduler.exe" `
+                 -Version "$env:VERSION" `
+                 -Title "Outlook Auto Archive Setup" `
+                 -Description "Task scheduler setup utility" `
+                 -Company "Ryan Zeffiretti" `
+                 -Product "Outlook Auto Archive" `
+                 -Copyright "Copyright (c) 2025 Ryan Zeffiretti. Licensed under MIT License." `
+                 -IconFile "icon.ico" `
+                 -NoConsole `
+                 -RequireAdmin
+
+      - name: Verify executables
+        run: |
+          # Check if executables were created successfully
+          if (Test-Path "OutlookAutoArchive.exe") {
+            $size = (Get-Item "OutlookAutoArchive.exe").Length
+            Write-Host "✓ OutlookAutoArchive.exe created successfully ($([math]::Round($size/1KB,2)) KB)"
+          } else {
+            Write-Error "❌ OutlookAutoArchive.exe was not created"
+            exit 1
+          }
+          
+          if (Test-Path "setup_task_scheduler.exe") {
+            $size = (Get-Item "setup_task_scheduler.exe").Length
+            Write-Host "✓ setup_task_scheduler.exe created successfully ($([math]::Round($size/1KB,2)) KB)"
+          } else {
+            Write-Error "❌ setup_task_scheduler.exe was not created"
+            exit 1
+          }
+
+      - name: Create release package
+        run: |
+          # Create a release directory with all necessary files
+          $releaseDir = "OutlookAutoArchive-v$env:VERSION"
+          New-Item -ItemType Directory -Path $releaseDir -Force
+          
+          # Copy files to release directory
+          Copy-Item "OutlookAutoArchive.exe" $releaseDir/
+          Copy-Item "setup_task_scheduler.exe" $releaseDir/
+          Copy-Item "OutlookAutoArchive.ps1" $releaseDir/
+          Copy-Item "setup_task_scheduler.ps1" $releaseDir/
+          Copy-Item "icon.ico" $releaseDir/
+          Copy-Item "README.md" $releaseDir/
+          Copy-Item "LICENSE" $releaseDir/
+          Copy-Item "CHANGELOG.md" $releaseDir/
+          
+          # Create a simple config example
+          $configExample = '{"DryRun": true,"ArchiveFolders": [],"LogPath": "","InstallPath": ""}'
+          $configExample | Out-File -FilePath "$releaseDir/config_example.json" -Encoding UTF8
+          
+          # Create ZIP archive
+          Compress-Archive -Path $releaseDir -DestinationPath "$releaseDir.zip" -Force
+          
+          Write-Host "✓ Release package created: $releaseDir.zip"
+
+      - name: Create Release
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            OutlookAutoArchive.exe
+            setup_task_scheduler.exe
+            OutlookAutoArchive.ps1
+            setup_task_scheduler.ps1
+            icon.ico
+            README.md
+            LICENSE
+            CHANGELOG.md
+            config_example.json
+            OutlookAutoArchive-v${{ steps.version.outputs.version }}.zip
+          body: |
+            ## Outlook Auto Archive v${{ steps.version.outputs.version }}
+            
+            ### 📦 What's Included
+            - **OutlookAutoArchive.exe** - Main application (compiled from PowerShell)
+            - **setup_task_scheduler.exe** - Task scheduler setup utility
+            - **OutlookAutoArchive.ps1** - Source PowerShell script
+            - **setup_task_scheduler.ps1** - Setup script source
+            - **icon.ico** - Application icon
+            - **config_example.json** - Configuration template
+            - **Complete package ZIP** - All files bundled together
+            
+            ### 🚀 Quick Start
+            1. Download and extract the files
+            2. Run `OutlookAutoArchive.exe` for first-time setup
+            3. Follow the interactive setup process
+            4. Configure your archive preferences
+            
+            ### 📋 System Requirements
+            - Windows 10/11
+            - Microsoft Outlook (desktop version)
+            - PowerShell 5.1 or later
+            
+            ### 🔧 Features
+            - Automatic email archiving
+            - Gmail label support
+            - Scheduled task integration
+            - Dry-run mode for testing
+            - Comprehensive logging
+            
+            ### 📄 Documentation
+            See README.md for detailed installation and usage instructions.
+            
+            ### 📝 Changelog
+            See CHANGELOG.md for version history and changes.
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts-v${{ steps.version.outputs.version }}
+          path: |
+            OutlookAutoArchive.exe
+            setup_task_scheduler.exe
+            OutlookAutoArchive.ps1
+            setup_task_scheduler.ps1
+            icon.ico
+            config_example.json
+            OutlookAutoArchive-v${{ steps.version.outputs.version }}.zip
+          retention-days: 30
+
+      - name: Build Summary
+        run: |
+          echo "## Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** ${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Build Status:** ✅ Successful" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Generated Files:" >> $GITHUB_STEP_SUMMARY
+          echo "- OutlookAutoArchive.exe" >> $GITHUB_STEP_SUMMARY
+          echo "- setup_task_scheduler.exe" >> $GITHUB_STEP_SUMMARY
+          echo "- Complete release package ZIP" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Next Steps:" >> $GITHUB_STEP_SUMMARY
+          echo "1. Test the executables on a clean system" >> $GITHUB_STEP_SUMMARY
+          echo "2. Update documentation if needed" >> $GITHUB_STEP_SUMMARY
+          echo "3. Create a GitHub release (if not auto-created)" >> $GITHUB_STEP_SUMMARY
